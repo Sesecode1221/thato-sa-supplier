@@ -1,0 +1,21 @@
+{
+  "name": "thato-sa-suppliers",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "@as-integrations/next": "^3.2.0",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.6.1",
+    "graphql": "^16.9.0",
+    "graphql-tag": "^2.12.7",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  },
+  "scripts": {
+    "postinstall": "prisma generate --schema=./backend/prisma/schema.prisma"
+  }
+}

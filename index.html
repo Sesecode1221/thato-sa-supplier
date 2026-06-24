@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SAsuppliers.com | B2B Marketplace for SA SMEs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; }
+        .card-hover:hover { transform: translateY(-4px); transition: 0.2s; box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+        .product-img-card { height: 190px; object-fit: cover; width: 100%; }
+        .modal-backdrop { backdrop-filter: blur(4px); }
+        .toast-notification { animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .landing-hero { background: linear-gradient(135deg, #0A2540 0%, #1B4D3E 100%); }
+        .package-card { transition: all 0.2s; }
+        .package-card:hover { transform: translateY(-6px); }
+    </style>
+</head>
+<body class="text-gray-800">
+
+<header class="bg-white shadow sticky top-0 z-30 border-b">
+    <div class="container mx-auto px-4 md:px-8 py-4 flex justify-between items-center flex-wrap gap-3">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="setActiveTab('landing')">
+            <i class="fas fa-handshake text-3xl text-red-600"></i>
+            <span class="text-2xl font-bold"><span class="text-black">SA</span><span class="text-blue-700">suppliers</span><span class="text-red-600">.</span><span class="text-black">com</span></span>
+            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full hidden sm:inline-block">B2B Marketplace</span>
+        </div>
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex gap-2 flex-wrap">
+            <button id="navLandingBtn" class="px-4 py-2 rounded-lg hover:bg-blue-50 transition font-semibold">🏠 Home</button>
+            <button id="navMarketplaceBtn" class="px-4 py-2 rounded-lg hover:bg-blue-50 transition">🏪 Marketplace</button>
+            <button id="navSuppliersBtn" class="px-4 py-2 rounded-lg hover:bg-blue-50 transition">📦 Suppliers</button>
+            <button id="navDashboardBtn" class="px-4 py-2 rounded-lg hover:bg-blue-50 transition hidden supplier-only">⚙️ Supplier Hub</button>
+            <button id="navAdminBtn" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 hidden admin-only">👑 Admin Panel</button>
+            <div id="authButtons" class="flex gap-2">
+                <button id="loginBtn" class="px-4 py-2 rounded-lg bg-blue-600 text-white">Login</button>
+                <button id="registerBtn" class="px-4 py-2 rounded-lg border border-blue-600 text-blue-600">Register</button>
+            </div>
+            <div id="userMenu" class="hidden flex items-center gap-3">
+                <span id="userNameDisplay" class="text-sm font-medium"></span>
+                <button id="profileBtn" class="text-gray-600 hover:text-blue-600"><i class="fas fa-user-circle text-xl"></i></button>
+                <button id="logoutBtn" class="text-sm bg-gray-200 px-3 py-1 rounded-lg">Logout</button>
+            </div>
+        </div>
+        <!-- Mobile Menu Button -->
+        <div class="md:hidden relative">
+            <button id="mobileMenuBtn" class="text-2xl p-2 rounded-lg bg-gray-100"><i class="fas fa-bars"></i></button>
+            <div id="mobileDropdown" class="hidden absolute right-0 top-12 bg-white shadow-xl rounded-2xl w-48 z-50 flex flex-col gap-2 p-3 border">
+                <button class="mobile-nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50" data-tab="landing">🏠 Home</button>
+                <button class="mobile-nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50" data-tab="marketplace">🏪 Marketplace</button>
+                <button class="mobile-nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50" data-tab="suppliers">📦 Suppliers</button>
+                <button class="mobile-nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 supplier-only hidden" data-tab="dashboard">⚙️ Supplier Hub</button>
+                <button class="mobile-nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-200 admin-only hidden" data-tab="admin">👑 Admin Panel</button>
+                <hr class="my-1">
+                <button id="mobileLoginBtn" class="text-left px-3 py-2 rounded-lg bg-blue-600 text-white">Login</button>
+                <button id="mobileRegisterBtn" class="text-left px-3 py-2 rounded-lg border border-blue-600 text-blue-600">Register</button>
+                <div id="mobileUserMenu" class="hidden flex-col gap-2">
+                    <span id="mobileUserName" class="px-3 py-1 font-semibold"></span>
+                    <button id="mobileProfileBtn" class="text-left px-3 py-2 rounded-lg hover:bg-gray-100">Profile</button>
+                    <button id="mobileLogoutBtn" class="text-left px-3 py-2 rounded-lg bg-gray-200">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 md:px-8 py-8">
+    <div id="landingView" class="w-full"></div>
+    <div id="marketplaceView" class="hidden w-full"></div>
+    <div id="suppliersView" class="hidden w-full"></div>
+    <div id="dashboardView" class="hidden w-full"></div>
+    <div id="adminView" class="hidden w-full"></div>
+</main>
+
+<div id="globalModal" class="fixed inset-0 hidden bg-black/60 modal-backdrop z-50 flex items-center justify-center p-4 transition-all"></div>
+
+<script>
+    // ----------------------------- DATA MODEL -----------------------------
+    let appData = {
+        suppliers: [],
+        products: [],
+        adminSettings: { autoApproveSuppliers: true, defaultMaxProducts: 25 },
+        metrics: { totalVisits: 4321, totalQuotes: 0, totalMessages: 0, growthLog: [] }
+    };
+    let supplierPermissions = new Map();
+    let users = [];
+    let currentUser = null;
+    let currentTab = 'landing';  // Now landing page is default
+    let growthChart = null;
+
+    const marketplaceDiv = document.getElementById('marketplaceView');
+    const suppliersDiv = document.getElementById('suppliersView');
+    const dashboardDiv = document.getElementById('dashboardView');
+    const adminView = document.getElementById('adminView');
+    const landingView = document.getElementById('landingView');
+    const modalContainer = document.getElementById('globalModal');
+
+    function genId(prefix) { return prefix + Date.now() + '-' + Math.random().toString(36).substring(2, 8); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+
+    function showToast(msg, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-5 right-5 z-50 ${type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'} text-white px-5 py-3 rounded-xl shadow-lg toast-notification text-sm md:text-base`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} mr-2"></i>${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Seed initial data (original + users)
+    function seedFullData() {
+        appData.suppliers = [
+            { id: "sup1", companyName: "Urban Apparel SA", location: "Johannesburg, Gauteng", isPremium: true, email: "trade@urbanapparel.co.za", phone: "+27 11 222 3344", description: "Leading supplier of bulk textiles & corporate wear.", logo: "https://picsum.photos/id/82/100/100", status: "active" },
+            { id: "sup2", companyName: "PackRight Solutions", location: "Cape Town, Western Cape", isPremium: false, email: "hello@packright.co.za", phone: "+27 21 555 6677", description: "Eco-friendly industrial packaging and storage.", logo: "https://picsum.photos/id/12/100/100", status: "active" },
+            { id: "sup3", companyName: "Safety First Supplies", location: "Durban, KZN", isPremium: true, email: "orders@safetyfirst.co.za", phone: "+27 31 765 4321", description: "Premium PPE: helmets, vests, gloves.", logo: "https://picsum.photos/id/20/100/100", status: "pending" },
+            { id: "sup4", companyName: "Bulk Storage Africa", location: "Pretoria, Gauteng", isPremium: false, email: "info@bulkstorage.co.za", phone: "+27 12 345 6789", description: "Heavy-duty shelving and industrial bins.", logo: "https://picsum.photos/id/42/100/100", status: "pending" },
+            { id: "sup5", companyName: "HomeStyle Furniture", location: "Johannesburg, Gauteng", isPremium: true, email: "trade@homestyle.co.za", phone: "+27 10 987 6543", description: "Modern office desks, dining chairs, storage.", logo: "https://picsum.photos/id/55/100/100", status: "active" }
+        ];
+        appData.products = [
+            { id: "prod1", supplierId: "sup1", name: "Premium Cotton T-Shirts (Bulk)", category: "Clothing", description: "100% combed cotton, ideal for branding.", priceRange: "R 45 - R 85", moq: 100, images: ["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"] },
+            { id: "prod2", supplierId: "sup1", name: "Custom Printed Workwear", category: "Clothing", description: "Logo printing available, durable fabric.", priceRange: "R 60 - R 120", moq: 50, images: ["https://successprinters.co.za/wp-content/uploads/2021/04/tshirts.jpg"] },
+            { id: "prod3", supplierId: "sup3", name: "Industrial Safety Helmets", category: "PPE", description: "Adjustable, shock-resistant, CE certified.", priceRange: "R 70 - R 120", moq: 100, images: ["https://heapro.com/cdn/shop/products/Heapro_LAL8276_1024x1024@2x.jpg"] },
+            { id: "prod4", supplierId: "sup2", name: "Heavy-Duty Plastic Crates", category: "Packaging", description: "Stackable, ideal for warehousing.", priceRange: "R 120 - R 250", moq: 50, images: ["https://cdn.shopify.com/s/files/1/0065/0136/7892/files/Pic_3_480x480.png"] }
+        ];
+        appData.metrics.growthLog = [
+            { month: "Jan", count: 2 }, { month: "Feb", count: 2 }, { month: "Mar", count: 3 },
+            { month: "Apr", count: 4 }, { month: "May", count: 5 }, { month: "Jun", count: 5 }
+        ];
+        appData.suppliers.forEach(s => {
+            supplierPermissions.set(s.id, { canAddProducts: true, maxProducts: 25, approved: s.status === 'active', canEditProfile: true });
+        });
+        appData.metrics.totalQuotes = 124;
+        appData.metrics.totalMessages = 57;
+
+        users = [
+            { id: "user_admin", email: "admin@sasuppliers.com", password: "admin123", role: "admin", name: "System Admin", company: "" },
+            { id: "user_sup1", email: "supplier@urbanapparel.co.za", password: "supplier123", role: "supplier", supplierId: "sup1", name: "Urban Manager", company: "Urban Apparel SA" },
+            { id: "user_buyer1", email: "buyer@example.com", password: "buyer123", role: "buyer", name: "John Buyer", company: "Retail Holdings" }
+        ];
+        saveToLocal();
+    }
+
+    function ensureDataIntegrity() {
+        appData.products.forEach(p => { if(!p.images || !p.images.length) p.images = ['https://picsum.photos/id/48/400/300']; if(!p.category) p.category = "General"; if(!p.moq) p.moq = 50; if(!p.priceRange) p.priceRange = "R 0 - R 0"; });
+        appData.suppliers.forEach(s => { if(!s.logo) s.logo = 'https://picsum.photos/id/20/100/100'; if(!s.status) s.status = 'active'; if(!s.phone) s.phone = "+27 11 555 6789"; if(!s.email) s.email = `${s.companyName.toLowerCase().replace(/\s/g,'')}@b2b.co.za`; if(!s.description) s.description = "Trusted B2B supplier."; if(s.isPremium === undefined) s.isPremium = false; });
+        if(!appData.metrics.growthLog.length) generateGrowthLog();
+    }
+
+    function generateGrowthLog() {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
+        const base = Math.max(3, appData.suppliers.length);
+        appData.metrics.growthLog = months.map((m, i) => ({ month: m, count: Math.floor(base * (0.4 + i * 0.1)) }));
+        const current = appData.suppliers.filter(s => s.status === 'active').length;
+        if(appData.metrics.growthLog[appData.metrics.growthLog.length-1].count !== current)
+            appData.metrics.growthLog.push({ month: "Sep", count: current });
+    }
+
+    function saveToLocal() {
+        const toStore = { appData, permissions: Object.fromEntries(supplierPermissions), users };
+        localStorage.setItem("sasuppliers_auth_v1", JSON.stringify(toStore));
+    }
+
+    function loadData() {
+        const stored = localStorage.getItem("sasuppliers_auth_v1");
+        if(stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                appData = parsed.appData || appData;
+                supplierPermissions = new Map(Object.entries(parsed.permissions || {}));
+                users = parsed.users || [];
+                if(!users.length) seedFullData();
+            } catch(e) { seedFullData(); }
+        } else { seedFullData(); }
+        ensureDataIntegrity();
+        const savedSession = localStorage.getItem("sasuppliers_session");
+        if(savedSession) {
+            try {
+                const sessionUser = JSON.parse(savedSession);
+                const found = users.find(u => u.id === sessionUser.id && u.role === sessionUser.role);
+                if(found) currentUser = { ...found, password: undefined };
+            } catch(e) {}
+        }
+        updateUIBasedOnAuth();
+        saveToLocal();
+    }
+
+    // ----------------------------- AUTHENTICATION -----------------------------
+    function login(email, password) {
+        const user = users.find(u => u.email === email && u.password === password);
+        if(!user) { showToast("Invalid email or password", "error"); return false; }
+        currentUser = { ...user, password: undefined };
+        localStorage.setItem("sasuppliers_session", JSON.stringify({ id: user.id, email: user.email, role: user.role }));
+        showToast(`Welcome ${user.name || user.email}`);
+        updateUIBasedOnAuth();
+        closeModal();
+        if(currentUser.role === 'admin') setActiveTab('admin');
+        else if(currentUser.role === 'supplier') setActiveTab('dashboard');
+        else setActiveTab('marketplace');
+        return true;
+    }
+
+    function register(userData) {
+        if(users.find(u => u.email === userData.email)) { showToast("Email already registered", "error"); return false; }
+        const newUser = {
+            id: genId("user"),
+            email: userData.email,
+            password: userData.password,
+            role: userData.role,
+            name: userData.name,
+            company: userData.company || "",
+            supplierId: null
+        };
+        if(userData.role === 'supplier') {
+            const newSupplier = {
+                id: genId("sup"),
+                companyName: userData.company,
+                location: userData.location || "Johannesburg",
+                isPremium: false,
+                email: userData.email,
+                phone: userData.phone || "+27 00 000 0000",
+                description: userData.description || "New supplier onboarded",
+                logo: "https://picsum.photos/id/1/100/100",
+                status: appData.adminSettings.autoApproveSuppliers ? 'active' : 'pending'
+            };
+            appData.suppliers.push(newSupplier);
+            supplierPermissions.set(newSupplier.id, { canAddProducts: true, maxProducts: 25, approved: newSupplier.status === 'active', canEditProfile: true });
+            newUser.supplierId = newSupplier.id;
+            showToast("Supplier registration submitted. Awaiting approval.", "success");
+        } else {
+            showToast("Buyer account created. You can now login.", "success");
+        }
+        users.push(newUser);
+        saveToLocal();
+        return login(userData.email, userData.password);
+    }
+
+    function logout() {
+        currentUser = null;
+        localStorage.removeItem("sasuppliers_session");
+        updateUIBasedOnAuth();
+        setActiveTab('landing');
+        showToast("Logged out successfully");
+    }
+
+    function updateUIBasedOnAuth() {
+        const isLoggedIn = !!currentUser;
+        const isAdmin = currentUser?.role === 'admin';
+        const isSupplier = currentUser?.role === 'supplier';
+        document.querySelectorAll('.supplier-only').forEach(el => el.classList.toggle('hidden', !isSupplier && !isAdmin));
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin));
+        const authDiv = document.getElementById('authButtons');
+        const userMenuDiv = document.getElementById('userMenu');
+        if(isLoggedIn) {
+            authDiv.classList.add('hidden');
+            userMenuDiv.classList.remove('hidden');
+            document.getElementById('userNameDisplay').innerText = currentUser.name || currentUser.email.split('@')[0];
+        } else {
+            authDiv.classList.remove('hidden');
+            userMenuDiv.classList.add('hidden');
+        }
+        const mobileUserMenu = document.getElementById('mobileUserMenu');
+        const mobileAuthParent = document.getElementById('mobileLoginBtn')?.parentNode;
+        if(isLoggedIn) {
+            if(mobileAuthParent) mobileAuthParent.classList.add('hidden');
+            mobileUserMenu.classList.remove('hidden');
+            document.getElementById('mobileUserName').innerText = currentUser.name || currentUser.email.split('@')[0];
+        } else {
+            if(mobileAuthParent) mobileAuthParent.classList.remove('hidden');
+            mobileUserMenu.classList.add('hidden');
+        }
+        refreshAllViews();
+    }
+
+    function showProfileModal() {
+        if(!currentUser) { showToast("Please login first", "error"); return; }
+        let html = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-xl font-bold mb-4"><i class="fas fa-user-circle"></i> My Profile</h3><form id="profileForm">`;
+        if(currentUser.role === 'supplier') {
+            const supplier = appData.suppliers.find(s => s.id === currentUser.supplierId);
+            html += `<input id="profileName" placeholder="Contact Name" value="${escapeHtml(currentUser.name || '')}" class="border p-2 w-full mb-3 rounded"><input id="profileCompany" placeholder="Company Name" value="${escapeHtml(supplier?.companyName || '')}" class="border p-2 w-full mb-3 rounded"><input id="profileEmail" type="email" placeholder="Email" value="${escapeHtml(currentUser.email)}" class="border p-2 w-full mb-3 rounded"><input id="profilePhone" placeholder="Phone" value="${escapeHtml(supplier?.phone || '')}" class="border p-2 w-full mb-3 rounded"><textarea id="profileDesc" rows="2" placeholder="Company Description" class="border p-2 w-full mb-3 rounded">${escapeHtml(supplier?.description || '')}</textarea><input id="profileLocation" placeholder="Location" value="${escapeHtml(supplier?.location || '')}" class="border p-2 w-full mb-3 rounded">`;
+        } else {
+            html += `<input id="profileName" placeholder="Full Name" value="${escapeHtml(currentUser.name || '')}" class="border p-2 w-full mb-3 rounded"><input id="profileCompany" placeholder="Company (optional)" value="${escapeHtml(currentUser.company || '')}" class="border p-2 w-full mb-3 rounded"><input id="profileEmail" type="email" placeholder="Email" value="${escapeHtml(currentUser.email)}" class="border p-2 w-full mb-3 rounded" disabled>`;
+        }
+        html += `<div class="flex gap-3 mt-2"><button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded-xl">Save Changes</button><button type="button" id="closeProfileBtn" class="bg-gray-300 px-4 py-2 rounded-xl">Cancel</button></div></form></div>`;
+        modalContainer.innerHTML = html;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('profileForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newName = document.getElementById('profileName')?.value;
+            if(newName) currentUser.name = newName;
+            if(currentUser.role === 'supplier') {
+                const supplier = appData.suppliers.find(s => s.id === currentUser.supplierId);
+                if(supplier) {
+                    supplier.companyName = document.getElementById('profileCompany')?.value || supplier.companyName;
+                    supplier.phone = document.getElementById('profilePhone')?.value || supplier.phone;
+                    supplier.description = document.getElementById('profileDesc')?.value || supplier.description;
+                    supplier.location = document.getElementById('profileLocation')?.value || supplier.location;
+                    const newEmail = document.getElementById('profileEmail')?.value;
+                    if(newEmail && newEmail !== currentUser.email) {
+                        supplier.email = newEmail;
+                        currentUser.email = newEmail;
+                        const userRecord = users.find(u => u.id === currentUser.id);
+                        if(userRecord) userRecord.email = newEmail;
+                    }
+                }
+            } else if(currentUser.role === 'buyer') {
+                currentUser.company = document.getElementById('profileCompany')?.value || '';
+                const userRecord = users.find(u => u.id === currentUser.id);
+                if(userRecord) userRecord.company = currentUser.company;
+            }
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if(userIndex !== -1) users[userIndex] = { ...users[userIndex], name: currentUser.name, email: currentUser.email, company: currentUser.company };
+            saveToLocal();
+            updateUIBasedOnAuth();
+            closeModal();
+            showToast("Profile updated");
+            refreshAllViews();
+        });
+        document.getElementById('closeProfileBtn').onclick = closeModal;
+    }
+
+    function showLoginModal() {
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-2xl font-bold mb-4">Login</h3><form id="loginForm"><input id="loginEmail" type="email" placeholder="Email" class="border p-2 w-full mb-3 rounded" required><input id="loginPassword" type="password" placeholder="Password" class="border p-2 w-full mb-3 rounded" required><button type="submit" class="bg-blue-700 text-white w-full py-2 rounded-xl font-semibold">Sign In</button><p class="text-center text-sm mt-3">Demo: admin@sasuppliers.com / admin123<br>supplier@urbanapparel.co.za / supplier123<br>buyer@example.com / buyer123</p></form><button id="closeLoginBtn" class="absolute top-2 right-2 text-gray-500"><i class="fas fa-times"></i></button></div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            login(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+        });
+        document.getElementById('closeLoginBtn').onclick = closeModal;
+    }
+
+    function showRegisterModal() {
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-2xl font-bold mb-4">Register</h3><form id="registerForm"><select id="regRole" class="border p-2 w-full mb-3 rounded"><option value="buyer">Buyer</option><option value="supplier">Supplier</option></select><input id="regName" placeholder="Full Name" class="border p-2 w-full mb-3 rounded" required><input id="regEmail" type="email" placeholder="Email" class="border p-2 w-full mb-3 rounded" required><input id="regPassword" type="password" placeholder="Password (min 4 chars)" class="border p-2 w-full mb-3 rounded" required><div id="supplierFields" class="hidden"><input id="regCompany" placeholder="Company Name" class="border p-2 w-full mb-3 rounded"><input id="regLocation" placeholder="Location (City, Province)" class="border p-2 w-full mb-3 rounded"><input id="regPhone" placeholder="Phone Number" class="border p-2 w-full mb-3 rounded"><textarea id="regDesc" rows="2" placeholder="Company Description" class="border p-2 w-full mb-3 rounded"></textarea></div><button type="submit" class="bg-green-700 text-white w-full py-2 rounded-xl font-semibold">Create Account</button></form><button id="closeRegBtn" class="absolute top-2 right-2 text-gray-500"><i class="fas fa-times"></i></button></div>`;
+        modalContainer.classList.remove('hidden');
+        const roleSelect = document.getElementById('regRole');
+        const supplierDiv = document.getElementById('supplierFields');
+        roleSelect.addEventListener('change', () => supplierDiv.classList.toggle('hidden', roleSelect.value !== 'supplier'));
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const role = roleSelect.value;
+            const userData = {
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                name: document.getElementById('regName').value,
+                role: role,
+                company: role === 'supplier' ? document.getElementById('regCompany').value : document.getElementById('regCompany')?.value || '',
+                location: role === 'supplier' ? document.getElementById('regLocation').value : '',
+                phone: role === 'supplier' ? document.getElementById('regPhone').value : '',
+                description: role === 'supplier' ? document.getElementById('regDesc').value : ''
+            };
+            if(!userData.email || !userData.password || !userData.name) { showToast("Please fill all required fields", "error"); return; }
+            if(userData.role === 'supplier' && !userData.company) { showToast("Company name required for supplier", "error"); return; }
+            register(userData);
+        });
+        document.getElementById('closeRegBtn').onclick = closeModal;
+    }
+
+    // ----------------------------- LANDING PAGE (Marketing & Subscriptions) -----------------------------
+    function renderLanding() {
+        const heroHtml = `
+        <div class="landing-hero rounded-3xl text-white p-8 md:p-12 mb-12">
+            <div class="max-w-3xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold mb-4">Source locally. Grow faster.</h1>
+                <p class="text-lg md:text-xl opacity-90 mb-6">South Africa's dedicated B2B marketplace for <strong>intermediate goods</strong> — raw materials, components, and bulk supplies. Connect with verified local suppliers, request quotes, and scale your SME.</p>
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="setActiveTab('marketplace')" class="bg-white text-green-800 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition"><i class="fas fa-search"></i> Browse Products</button>
+                    <button onclick="showRegisterModal()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold transition"><i class="fas fa-store"></i> List as Supplier →</button>
+                </div>
+            </div>
+        </div>`;
+
+        const servicesHtml = `
+        <div class="mb-16">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10">Why SA suppliers?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow text-center card-hover"><i class="fas fa-check-circle text-green-600 text-4xl mb-3"></i><h3 class="text-xl font-semibold mb-2">Verified Suppliers</h3><p class="text-gray-600">Every seller undergoes a manual onboarding process — no fly‑by‑nights.</p></div>
+                <div class="bg-white p-6 rounded-2xl shadow text-center card-hover"><i class="fas fa-handshake text-blue-600 text-4xl mb-3"></i><h3 class="text-xl font-semibold mb-2">Local & Reliable</h3><p class="text-gray-600">Focus on South African SMEs: textiles, chemicals, engineering, packaging, PPE.</p></div>
+                <div class="bg-white p-6 rounded-2xl shadow text-center card-hover"><i class="fas fa-truck text-yellow-600 text-4xl mb-3"></i><h3 class="text-xl font-semibold mb-2">Bulk & MOQ</h3><p class="text-gray-600">Minimum order quantities designed for small businesses. Request quotes directly.</p></div>
+            </div>
+        </div>`;
+
+        const packagesHtml = `
+        <div class="mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-center mb-10">📦 Supplier Subscription Plans</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-gray-400 package-card"><div class="text-center"><i class="fas fa-seedling text-gray-500 text-3xl"></i><h3 class="text-xl font-bold mt-2">Starter</h3><p class="text-3xl font-extrabold mt-3">R49<span class="text-base font-normal">/month</span></p><ul class="mt-4 space-y-2 text-sm"><li><i class="fas fa-check text-green-500"></i> Up to 10 product listings</li><li><i class="fas fa-check text-green-500"></i> Basic profile & contact</li><li><i class="fas fa-check text-green-500"></i> Quote requests via email</li><li><i class="fas fa-times text-gray-300"></i> Premium badge</li></ul><button onclick="showRegisterModal()" class="mt-6 w-full bg-gray-800 text-white py-2 rounded-xl hover:bg-gray-700">Get Started</button></div></div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 border-t-4 border-blue-600 package-card relative"><div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full">Most Popular</div><div class="text-center"><i class="fas fa-chart-line text-blue-600 text-3xl"></i><h3 class="text-xl font-bold mt-2">Pro</h3><p class="text-3xl font-extrabold mt-3">R99<span class="text-base font-normal">/month</span></p><ul class="mt-4 space-y-2 text-sm"><li><i class="fas fa-check text-green-500"></i> Up to 50 product listings</li><li><i class="fas fa-check text-green-500"></i> Verified badge & higher ranking</li><li><i class="fas fa-check text-green-500"></i> Direct messaging + quote dashboard</li><li><i class="fas fa-check text-green-500"></i> Analytics: views & quote volume</li></ul><button onclick="showRegisterModal()" class="mt-6 w-full bg-blue-700 text-white py-2 rounded-xl hover:bg-blue-800">Start 14‑day trial</button></div></div>
+                <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-yellow-500 package-card"><div class="text-center"><i class="fas fa-crown text-yellow-500 text-3xl"></i><h3 class="text-xl font-bold mt-2">Enterprise</h3><p class="text-3xl font-extrabold mt-3">R249<span class="text-base font-normal">/month</span></p><ul class="mt-4 space-y-2 text-sm"><li><i class="fas fa-check text-green-500"></i> Unlimited products</li><li><i class="fas fa-check text-green-500"></i> Priority support & featured placement</li><li><i class="fas fa-check text-green-500"></i> Logistics API integration ready</li><li><i class="fas fa-check text-green-500"></i> Cross‑border trade (SADC)</li></ul><button onclick="showRegisterModal()" class="mt-6 w-full bg-yellow-600 text-white py-2 rounded-xl hover:bg-yellow-700">Contact Sales</button></div></div>
+            </div>
+            <p class="text-center text-gray-500 text-sm mt-6">*No hidden fees. Cancel anytime. First month 50% off for early suppliers.</p>
+        </div>`;
+
+        const ctaHtml = `
+        <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-8 text-center">
+            <h3 class="text-2xl font-bold mb-2">Ready to transform your sourcing?</h3>
+            <p class="mb-4 text-gray-700">Join 150+ South African suppliers already listing on SA suppliers.</p>
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button onclick="showRegisterModal()" class="bg-green-700 text-white px-6 py-2 rounded-xl font-semibold"><i class="fas fa-user-plus"></i> Register as Supplier</button>
+                <button onclick="setActiveTab('marketplace')" class="bg-white border border-green-700 text-green-700 px-6 py-2 rounded-xl font-semibold"><i class="fas fa-shopping-cart"></i> Browse as Buyer</button>
+            </div>
+        </div>`;
+
+        landingView.innerHTML = heroHtml + servicesHtml + packagesHtml + ctaHtml;
+    }
+
+    // ----------------------------- VIEW RENDERING (original marketplace, suppliers, dashboard, admin) -----------------------------
+    function refreshAllViews() {
+        if(currentTab === 'landing') renderLanding();
+        else if(currentTab === 'marketplace') renderMarketplace();
+        else if(currentTab === 'suppliers') renderSuppliers();
+        else if(currentTab === 'dashboard') { if(currentUser?.role === 'supplier' || currentUser?.role === 'admin') renderDashboard(); else { setActiveTab('landing'); showToast("Access denied: Supplier area only", "error"); } }
+        else if(currentTab === 'admin') { if(currentUser?.role === 'admin') renderAdmin(); else { setActiveTab('landing'); showToast("Access denied: Admin only", "error"); } }
+        else setActiveTab('landing');
+    }
+
+    let filters = { search: '' };
+    function renderMarketplace() {
+        let filtered = appData.products.filter(p => getSupplier(p.supplierId)?.status === 'active');
+        if(filters.search.trim()) {
+            const term = filters.search.toLowerCase();
+            filtered = filtered.filter(p => p.name.toLowerCase().includes(term) || getSupplier(p.supplierId)?.companyName.toLowerCase().includes(term));
+        }
+        let html = `<div class="mb-6"><h1 class="text-2xl md:text-3xl font-bold">🇿🇦 Source Locally. Buy Smarter.</h1><p class="text-gray-500 text-sm md:text-base">Verified bulk suppliers, MOQs & instant quotes</p></div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border mb-8"><div class="flex flex-col md:flex-row gap-3"><div class="flex-1"><input type="text" id="marketSearch" value="${filters.search}" placeholder="🔍 Search product or supplier" class="w-full border rounded-xl p-2.5"></div><button id="resetFiltersBtn" class="bg-gray-200 px-5 py-2.5 rounded-xl font-medium">Reset</button></div></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">`;
+        if(filtered.length === 0) html += `<div class="col-span-full text-center py-16 bg-white rounded-2xl">No products match.</div>`;
+        filtered.forEach(prod => {
+            const supp = getSupplier(prod.supplierId);
+            if(!supp) return;
+            html += `<div class="bg-white rounded-2xl shadow-md overflow-hidden border card-hover"><img src="${prod.images[0]}" class="product-img-card h-48 w-full object-cover"><div class="p-4"><div class="flex justify-between items-start"><h3 class="font-bold text-lg">${escapeHtml(prod.name)}</h3>${supp.isPremium ? '<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full"><i class="fas fa-check-circle"></i> Verified</span>' : ''}</div>
+            <p class="text-gray-500 text-sm mt-1"><i class="fas fa-building"></i> ${escapeHtml(supp.companyName)} | 📍 ${supp.location}</p><div class="mt-3 flex justify-between items-center"><span class="text-blue-700 font-bold">💰 ${prod.priceRange}</span><span class="text-xs bg-gray-100 px-2 py-1 rounded-full">MOQ: ${prod.moq}</span></div>
+            <div class="mt-4 flex gap-2"><button onclick="showProductDetail('${prod.id}')" class="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm flex-1 font-medium"><i class="fas fa-eye"></i> Details</button><button onclick="showQuoteModal('${prod.id}')" class="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-sm flex-1 font-medium"><i class="fas fa-envelope"></i> Quote</button></div></div></div>`;
+        });
+        html += `</div>`;
+        marketplaceDiv.innerHTML = html;
+        document.getElementById('marketSearch')?.addEventListener('input', (e) => { filters.search = e.target.value; renderMarketplace(); });
+        document.getElementById('resetFiltersBtn')?.addEventListener('click', () => { filters.search = ''; renderMarketplace(); });
+    }
+
+    function renderSuppliers() {
+        const activeSuppliers = appData.suppliers.filter(s => s.status === 'active');
+        let html = `<h2 class="text-2xl md:text-3xl font-bold mb-6">📦 Trusted B2B Suppliers in SA</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+        activeSuppliers.forEach(s => {
+            const prodCount = appData.products.filter(p => p.supplierId === s.id).length;
+            html += `<div class="bg-white rounded-2xl shadow-lg p-5 border hover:shadow-xl transition"><div class="flex items-center gap-4"><img src="${s.logo}" class="w-16 h-16 rounded-full object-cover border-2 border-blue-100"><div><h3 class="font-bold text-xl">${escapeHtml(s.companyName)}${s.isPremium ? ' <i class="fas fa-medal text-yellow-500"></i>' : ''}</h3><p class="text-gray-500 text-sm"><i class="fas fa-map-marker-alt"></i> ${s.location}</p></div></div>
+            <p class="text-gray-600 text-sm mt-3">${escapeHtml(s.description)}</p><div class="mt-3 flex justify-between text-sm"><span><i class="fas fa-box"></i> ${prodCount} products</span><span><i class="fas fa-phone-alt"></i> ${s.phone}</span></div>
+            <div class="mt-4 flex gap-2"><button onclick="contactSupplierModal('${s.id}')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg flex-1"><i class="fas fa-comment"></i> Contact</button><button onclick="supplierProductsModal('${s.id}')" class="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg flex-1"><i class="fas fa-boxes"></i> Products</button></div></div>`;
+        });
+        html += `</div>`;
+        suppliersDiv.innerHTML = html;
+    }
+
+    function renderDashboard() {
+        if(!currentUser || currentUser.role !== 'supplier') { dashboardDiv.innerHTML = `<div class="bg-white p-8 text-center rounded-2xl">Access denied. Supplier login required.</div>`; return; }
+        const supplier = appData.suppliers.find(s => s.id === currentUser.supplierId);
+        if(!supplier) { dashboardDiv.innerHTML = `<div class="bg-white p-8 text-center">Supplier profile not found. Contact admin.</div>`; return; }
+        const perm = supplierPermissions.get(supplier.id) || { canAddProducts: true, maxProducts: 25 };
+        const products = appData.products.filter(p => p.supplierId === supplier.id);
+        const canAddMore = perm.canAddProducts && products.length < perm.maxProducts;
+        let html = `<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6"><h2 class="text-2xl font-bold"><i class="fas fa-chalkboard-user"></i> ${escapeHtml(supplier.companyName)} Hub</h2></div>
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 mb-6 flex flex-wrap justify-between items-center"><div><p class="font-semibold">📊 Product Limit: ${products.length} / ${perm.maxProducts}</p>${!perm.canAddProducts ? '<p class="text-red-600 text-sm">⚠️ Product creation disabled by admin</p>' : ''}</div>
+        <button id="dashAddProductBtn" ${!canAddMore || !perm.canAddProducts ? 'disabled' : ''} class="bg-blue-700 text-white px-5 py-2 rounded-xl text-sm disabled:opacity-50"><i class="fas fa-plus-circle"></i> Add New Product</button></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">`;
+        if(products.length === 0) html += `<div class="col-span-full text-center py-12 bg-white rounded-2xl">No products yet. Start listing bulk inventory.</div>`;
+        products.forEach(p => {
+            html += `<div class="bg-white border rounded-xl p-4 flex gap-4 shadow-sm"><img src="${p.images[0]}" class="w-20 h-20 rounded-lg object-cover"><div class="flex-1"><h3 class="font-bold">${escapeHtml(p.name)}</h3><p class="text-xs text-gray-500">${p.category} | MOQ ${p.moq} | ${p.priceRange}</p><p class="text-sm truncate">${escapeHtml(p.description.substring(0,70))}</p><div class="flex gap-3 mt-2"><button onclick="editProduct('${p.id}')" class="text-blue-600 text-sm"><i class="fas fa-edit"></i> Edit</button><button onclick="deleteProduct('${p.id}')" class="text-red-500 text-sm"><i class="fas fa-trash"></i> Delete</button></div></div></div>`;
+        });
+        html += `</div>`;
+        dashboardDiv.innerHTML = html;
+        document.getElementById('dashAddProductBtn')?.addEventListener('click', () => showAddProductModal());
+    }
+
+    function renderAdmin() {
+        if(currentUser?.role !== 'admin') return;
+        const total = appData.suppliers.length, activeSup = appData.suppliers.filter(s=>s.status==='active').length, pending = appData.suppliers.filter(s=>s.status==='pending').length;
+        const totalProds = appData.products.length, quotes = appData.metrics.totalQuotes;
+        const growthData = appData.metrics.growthLog;
+        const labels = growthData.map(g => g.month), counts = growthData.map(g => g.count);
+        let html = `<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-2xl shadow border-l-4 border-l-blue-600"><div class="text-2xl md:text-3xl font-bold text-blue-700">${total}</div><div class="text-gray-500 text-sm">Total Suppliers</div><div class="text-green-600 text-xs">${activeSup} active</div></div>
+            <div class="bg-white p-4 rounded-2xl shadow border-l-4 border-l-yellow-500"><div class="text-2xl md:text-3xl font-bold text-yellow-600">${pending}</div><div>Pending Approval</div><button id="reviewPendingBtn" class="text-xs bg-yellow-100 px-2 py-1 rounded mt-1">Review</button></div>
+            <div class="bg-white p-4 rounded-2xl shadow border-l-4 border-l-green-600"><div class="text-2xl md:text-3xl font-bold text-green-700">${totalProds}</div><div>Active Listings</div></div>
+            <div class="bg-white p-4 rounded-2xl shadow border-l-4 border-l-purple-600"><div class="text-2xl md:text-3xl font-bold text-purple-700">${quotes}</div><div>Quote Requests</div></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5 mb-8"><h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-chart-line text-blue-600"></i> Supplier Growth Trajectory</h3><canvas id="adminGrowthChart" height="100"></canvas></div>
+        <div class="bg-white rounded-2xl shadow p-5 mb-8"><div class="flex flex-wrap justify-between items-center mb-4"><h3 class="text-xl font-bold">🔐 Supplier Permissions & Access Control</h3><button id="adminAddSupBtn" class="bg-green-600 text-white px-4 py-2 rounded-xl text-sm"><i class="fas fa-plus"></i> New Supplier</button></div>
+        <div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-gray-100"><tr><th class="p-3 text-left">Company</th><th>Status</th><th>Max Products</th><th>Can Add</th><th>Premium</th><th>Actions</th></tr></thead><tbody id="adminPermTable"></tbody>}</div></div>
+        <div class="bg-gray-100 p-5 rounded-xl"><h4 class="font-bold">⚙️ Global Site Controls</h4><label class="inline-flex items-center gap-2 mt-2"><input type="checkbox" id="autoApproveToggle" ${appData.adminSettings.autoApproveSuppliers ? 'checked' : ''}> Auto-approve new supplier registrations</label>
+        <button id="saveAdminSettings" class="ml-4 bg-gray-800 text-white px-4 py-1.5 rounded-lg text-sm">Save Settings</button></div>`;
+        adminView.innerHTML = html;
+        const tbody = document.getElementById('adminPermTable');
+        if(tbody) {
+            appData.suppliers.forEach(supp => {
+                const perm = supplierPermissions.get(supp.id) || { canAddProducts: true, maxProducts: 25 };
+                const row = `<tr class="border-b"><td class="p-3 font-medium">${escapeHtml(supp.companyName)}</td>
+                <td><select class="statusSelect border rounded p-1 text-xs" data-id="${supp.id}"><option value="active" ${supp.status==='active'?'selected':''}>Active</option><option value="pending" ${supp.status==='pending'?'selected':''}>Pending</option><option value="suspended" ${supp.status==='suspended'?'selected':''}>Suspended</option></select></td>
+                <td><input type="number" value="${perm.maxProducts}" class="maxProdInput w-20 border rounded p-1 text-sm" data-id="${supp.id}"></td>
+                <td><input type="checkbox" class="canAddCheck" data-id="${supp.id}" ${perm.canAddProducts ? 'checked' : ''}></td>
+                <td>${supp.isPremium ? '<span class="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-xs">Premium</span>' : `<button class="makePremBtn text-blue-600 text-xs" data-id="${supp.id}">Grant ⭐</button>`}</td>
+                <td><button class="editSupBtn text-indigo-600 mr-2" data-supp='${JSON.stringify(supp)}'><i class="fas fa-edit"></i></button><button class="deleteSupBtn text-red-500" data-id="${supp.id}"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+            attachAdminEvents();
+        }
+        const ctx = document.getElementById('adminGrowthChart')?.getContext('2d');
+        if(ctx && window.Chart) growthChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Suppliers Onboarded', data: counts, borderColor: '#2563eb', fill: true, tension: 0.3 }] }, options: { responsive: true } });
+        document.getElementById('reviewPendingBtn')?.addEventListener('click', () => { const pendingList = appData.suppliers.filter(s=>s.status==='pending'); if(pendingList.length) alert(`Pending: ${pendingList.map(s=>s.companyName).join(', ')}. Use dropdown to approve.`); else alert("No pending suppliers."); });
+        document.getElementById('adminAddSupBtn')?.addEventListener('click', () => showAdminAddSupplier());
+        document.getElementById('saveAdminSettings')?.addEventListener('click', () => { appData.adminSettings.autoApproveSuppliers = document.getElementById('autoApproveToggle').checked; saveToLocal(); showToast("Global settings saved"); });
+    }
+
+    function attachAdminEvents() { /* unchanged from original */ 
+        document.querySelectorAll('.statusSelect').forEach(sel => sel.addEventListener('change', (e) => { const s = appData.suppliers.find(s=>s.id===sel.dataset.id); if(s) { s.status = sel.value; saveToLocal(); refreshAllViews(); showToast(`Status updated to ${sel.value}`); } }));
+        document.querySelectorAll('.maxProdInput').forEach(inp => inp.addEventListener('change', (e) => { const id = inp.dataset.id; let p = supplierPermissions.get(id) || { maxProducts: 25 }; p.maxProducts = parseInt(inp.value); supplierPermissions.set(id, p); saveToLocal(); showToast("Product limit updated"); }));
+        document.querySelectorAll('.canAddCheck').forEach(ch => ch.addEventListener('change', (e) => { const id = ch.dataset.id; let p = supplierPermissions.get(id) || {}; p.canAddProducts = ch.checked; supplierPermissions.set(id, p); saveToLocal(); showToast("Permission saved"); }));
+        document.querySelectorAll('.makePremBtn').forEach(btn => btn.addEventListener('click', () => { const s = appData.suppliers.find(s=>s.id===btn.dataset.id); if(s) { s.isPremium = true; saveToLocal(); renderAdmin(); showToast(`${s.companyName} is now Premium`); } }));
+        document.querySelectorAll('.editSupBtn').forEach(btn => btn.addEventListener('click', () => editSupplierAdmin(JSON.parse(btn.dataset.supp))));
+        document.querySelectorAll('.deleteSupBtn').forEach(btn => btn.addEventListener('click', () => { if(confirm("Delete supplier & all products?")) { const sid = btn.dataset.id; appData.suppliers = appData.suppliers.filter(s => s.id !== sid); appData.products = appData.products.filter(p => p.supplierId !== sid); supplierPermissions.delete(sid); saveToLocal(); refreshAllViews(); showToast("Deleted", "error"); } }));
+    }
+
+    // Modal & CRUD functions (unchanged, but ensure they reference correct globals)
+    function showAddProductModal() {
+        if(currentUser?.role !== 'supplier') return;
+        const supplierId = currentUser.supplierId;
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-auto"><h3 class="text-2xl font-bold mb-4">📦 Add New Product</h3><form id="addProductForm"><div class="grid gap-3"><input id="prodName" placeholder="Product Name" class="border p-2 rounded" required><select id="prodCategory" class="border p-2 rounded"><option>Clothing</option><option>PPE</option><option>Furniture</option><option>Packaging</option></select><textarea id="prodDesc" rows="2" placeholder="Description" class="border p-2 rounded"></textarea><input id="prodPrice" placeholder="Price Range e.g. R 100 - R 200" class="border p-2 rounded"><input id="prodMoq" type="number" placeholder="MOQ" class="border p-2 rounded"><input id="prodImage" placeholder="Image URL" class="border p-2 rounded"><div class="flex gap-3 mt-3"><button type="submit" class="bg-blue-700 text-white px-5 py-2 rounded-xl">Create Product</button><button type="button" id="closeModalForm" class="bg-gray-300 px-4 py-2 rounded-xl">Cancel</button></div></div></form></div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('addProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newProd = { id: genId('prod'), supplierId, name: document.getElementById('prodName').value, category: document.getElementById('prodCategory').value, description: document.getElementById('prodDesc').value, priceRange: document.getElementById('prodPrice').value, moq: parseInt(document.getElementById('prodMoq').value), images: [document.getElementById('prodImage').value || 'https://picsum.photos/id/48/300/200'] };
+            if(!newProd.name) { showToast("Product name required", "error"); return; }
+            appData.products.push(newProd);
+            saveToLocal();
+            refreshAllViews();
+            closeModal();
+            showToast("Product added successfully");
+        });
+        document.getElementById('closeModalForm').onclick = closeModal;
+    }
+
+    function editProduct(productId) {
+        if(currentUser?.role !== 'supplier') return;
+        const p = appData.products.find(p => p.id === productId);
+        if(p.supplierId !== currentUser.supplierId && currentUser.role !== 'admin') { showToast("Unauthorized","error"); return; }
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-2xl w-full p-6"><h3 class="text-2xl font-bold mb-4">✏️ Edit Product</h3><form id="editProductForm"><div class="grid gap-3"><input id="prodName" value="${escapeHtml(p.name)}" placeholder="Product Name" class="border p-2 rounded"><select id="prodCategory" class="border p-2 rounded"><option>Clothing</option><option>PPE</option><option>Furniture</option><option>Packaging</option></select><textarea id="prodDesc" rows="2" class="border p-2 rounded">${escapeHtml(p.description)}</textarea><input id="prodPrice" value="${p.priceRange}" class="border p-2 rounded"><input id="prodMoq" value="${p.moq}" type="number" class="border p-2 rounded"><input id="prodImage" value="${p.images[0]}" placeholder="Image URL" class="border p-2 rounded"><div class="flex gap-3 mt-3"><button type="submit" class="bg-blue-700 text-white px-5 py-2 rounded-xl">Update</button><button type="button" id="closeModalForm" class="bg-gray-300 px-4 py-2 rounded-xl">Cancel</button></div></div></form></div>`;
+        modalContainer.classList.remove('hidden');
+        const catSelect = document.getElementById('prodCategory');
+        if(p.category) catSelect.value = p.category;
+        document.getElementById('editProductForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            p.name = document.getElementById('prodName').value;
+            p.category = document.getElementById('prodCategory').value;
+            p.description = document.getElementById('prodDesc').value;
+            p.priceRange = document.getElementById('prodPrice').value;
+            p.moq = parseInt(document.getElementById('prodMoq').value);
+            p.images = [document.getElementById('prodImage').value || p.images[0]];
+            saveToLocal();
+            refreshAllViews();
+            closeModal();
+            showToast("Product updated");
+        });
+        document.getElementById('closeModalForm').onclick = closeModal;
+    }
+
+    function deleteProduct(productId) {
+        if(currentUser?.role !== 'supplier') return;
+        const p = appData.products.find(p => p.id === productId);
+        if(p.supplierId !== currentUser.supplierId && currentUser.role !== 'admin') { showToast("Unauthorized","error"); return; }
+        if(confirm("Delete this product permanently?")) {
+            appData.products = appData.products.filter(p => p.id !== productId);
+            saveToLocal();
+            refreshAllViews();
+            showToast("Product deleted", "error");
+        }
+    }
+
+    function showProductDetail(productId) {
+        const p = appData.products.find(x => x.id === productId);
+        const s = getSupplier(p.supplierId);
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-2xl w-full p-6"><h2 class="text-2xl font-bold">${escapeHtml(p.name)}</h2><img src="${p.images[0]}" class="w-full rounded-xl my-4 max-h-72 object-cover"><p>${escapeHtml(p.description)}</p><p class="mt-3 font-semibold text-blue-700">${p.priceRange} | MOQ ${p.moq}</p><p class="mt-2 text-sm">Supplier: ${s.companyName} • ${s.phone}</p><div class="mt-5 flex gap-3"><button onclick="closeModal(); showQuoteModal('${p.id}')" class="bg-emerald-600 text-white px-5 py-2 rounded-xl">Request Quote</button><button onclick="closeModal()" class="bg-gray-300 px-5 py-2 rounded-xl">Close</button></div></div>`;
+        modalContainer.classList.remove('hidden');
+    }
+
+    function showQuoteModal(productId) {
+        const p = appData.products.find(x => x.id === productId);
+        const s = getSupplier(p.supplierId);
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-xl font-bold">Quote Request: ${escapeHtml(p.name)}</h3><textarea id="quoteMsg" class="border w-full p-2 rounded my-3" rows="3" placeholder="Enter quantity/specifications"></textarea><div class="flex gap-3"><button id="sendQuoteBtn" class="bg-blue-700 text-white px-4 py-2 rounded-xl">Send</button><button onclick="closeModal()" class="bg-gray-300 px-4 py-2 rounded-xl">Cancel</button></div></div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('sendQuoteBtn').onclick = () => {
+            appData.metrics.totalQuotes++;
+            saveToLocal();
+            showToast('Quote request sent to ' + s.email);
+            closeModal();
+            refreshAllViews();
+        };
+    }
+
+    function contactSupplierModal(supplierId) {
+        const s = getSupplier(supplierId);
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-xl font-bold">Contact ${escapeHtml(s.companyName)}</h3><textarea id="msg" rows="3" class="border w-full p-2 rounded my-3" placeholder="Your message..."></textarea><div class="flex gap-3"><button id="sendMsgBtn" class="bg-indigo-700 text-white px-4 py-2 rounded-xl">Send Message</button><button onclick="closeModal()" class="bg-gray-300 px-4 py-2 rounded-xl">Close</button></div></div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('sendMsgBtn').onclick = () => {
+            appData.metrics.totalMessages++;
+            saveToLocal();
+            showToast('Message sent to ' + s.email);
+            closeModal();
+            refreshAllViews();
+        };
+    }
+
+    function supplierProductsModal(supplierId) {
+        const s = getSupplier(supplierId);
+        const prods = appData.products.filter(p => p.supplierId === supplierId);
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-lg w-full p-5"><h3 class="font-bold text-xl mb-3">${escapeHtml(s.companyName)} Products</h3>${prods.map(p => `<div class='border-b py-2'><b>${escapeHtml(p.name)}</b> - ${p.priceRange}<br><span class='text-sm text-gray-500'>MOQ ${p.moq}</span></div>`).join('') || '<p>No products listed</p>'}<button onclick="closeModal()" class="mt-4 bg-gray-400 text-white px-4 py-2 rounded">Close</button></div>`;
+        modalContainer.classList.remove('hidden');
+    }
+
+    function editSupplierAdmin(supp) {
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md p-6"><h3>Edit Supplier</h3><form id="adminEditSupForm"><input id="editName" value="${escapeHtml(supp.companyName)}" class="border p-2 w-full my-2"><input id="editEmail" value="${supp.email}" class="border p-2 w-full"><textarea id="editDesc" rows="2" class="border p-2 w-full my-2">${escapeHtml(supp.description)}</textarea><button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded-xl">Save</button><button type="button" id="closeEditAdmin" class="ml-2 bg-gray-300 px-4 py-2 rounded-xl">Cancel</button></form></div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('adminEditSupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            supp.companyName = document.getElementById('editName').value;
+            supp.email = document.getElementById('editEmail').value;
+            supp.description = document.getElementById('editDesc').value;
+            saveToLocal();
+            refreshAllViews();
+            closeModal();
+            showToast("Supplier updated");
+        });
+        document.getElementById('closeEditAdmin').onclick = closeModal;
+    }
+
+    function showAdminAddSupplier() {
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md p-6"><h3>➕ Onboard New Supplier</h3><form id="adminAddSupForm"><input id="compName" placeholder="Company Name" class="border p-2 w-full my-2"><input id="compEmail" placeholder="Email" class="border p-2 w-full"><input id="compLoc" placeholder="Location" class="border p-2 w-full my-2"><textarea id="compDesc" rows="2" placeholder="Description" class="border p-2 w-full"></textarea><button type="submit" class="bg-green-700 text-white px-4 py-2 rounded-xl">Create</button><button type="button" id="closeAddSup" class="ml-2 bg-gray-300 px-4 py-2 rounded-xl">Cancel</button></form></div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('adminAddSupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newSup = { id: genId('sup'), companyName: document.getElementById('compName').value, email: document.getElementById('compEmail').value, location: document.getElementById('compLoc').value, description: document.getElementById('compDesc').value, logo: 'https://picsum.photos/id/1/100/100', isPremium: false, status: appData.adminSettings.autoApproveSuppliers ? 'active' : 'pending', phone: "+27 00 000 0000" };
+            if(!newSup.companyName) { showToast("Company name required", "error"); return; }
+            appData.suppliers.push(newSup);
+            supplierPermissions.set(newSup.id, { canAddProducts: true, maxProducts: 25, approved: newSup.status === 'active' });
+            saveToLocal();
+            refreshAllViews();
+            closeModal();
+            showToast("Supplier onboarded", "success");
+        });
+        document.getElementById('closeAddSup').onclick = closeModal;
+    }
+
+    function getSupplier(id) { return appData.suppliers.find(s => s.id === id); }
+    function closeModal() { modalContainer.classList.add('hidden'); }
+
+    // Navigation
+    function setActiveTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('#landingView, #marketplaceView, #suppliersView, #dashboardView, #adminView').forEach(v => v.classList.add('hidden'));
+        if(tab === 'landing') landingView.classList.remove('hidden');
+        else if(tab === 'marketplace') marketplaceDiv.classList.remove('hidden');
+        else if(tab === 'suppliers') suppliersDiv.classList.remove('hidden');
+        else if(tab === 'dashboard') dashboardDiv.classList.remove('hidden');
+        else if(tab === 'admin') adminView.classList.remove('hidden');
+        refreshAllViews();
+    }
+
+    // Event bindings
+    document.getElementById('navLandingBtn').onclick = () => setActiveTab('landing');
+    document.getElementById('navMarketplaceBtn').onclick = () => setActiveTab('marketplace');
+    document.getElementById('navSuppliersBtn').onclick = () => setActiveTab('suppliers');
+    document.getElementById('navDashboardBtn').onclick = () => { if(currentUser?.role==='supplier') setActiveTab('dashboard'); else showToast("Supplier login required","error"); };
+    document.getElementById('navAdminBtn').onclick = () => { if(currentUser?.role==='admin') setActiveTab('admin'); else showToast("Admin access only","error"); };
+    document.getElementById('loginBtn').onclick = showLoginModal;
+    document.getElementById('registerBtn').onclick = showRegisterModal;
+    document.getElementById('logoutBtn').onclick = logout;
+    document.getElementById('profileBtn').onclick = showProfileModal;
+    document.getElementById('mobileLoginBtn').onclick = showLoginModal;
+    document.getElementById('mobileRegisterBtn').onclick = showRegisterModal;
+    document.getElementById('mobileProfileBtn').onclick = showProfileModal;
+    document.getElementById('mobileLogoutBtn').onclick = logout;
+    document.getElementById('mobileMenuBtn')?.addEventListener('click', () => document.getElementById('mobileDropdown').classList.toggle('hidden'));
+    document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.addEventListener('click', (e) => { setActiveTab(btn.dataset.tab); document.getElementById('mobileDropdown').classList.add('hidden'); }));
+
+    // Initialize
+    loadData();
+    setActiveTab('landing');
+</script>
+</body>
+</html>

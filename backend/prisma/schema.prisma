@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("buyer") // buyer | supplier | admin
+  company   String?
+  createdAt DateTime @default(now())
+  supplier  Supplier?
+}
+
+model Supplier {
+  id          String    @id @default(cuid())
+  companyName String
+  location    String
+  phone       String
+  email       String
+  description String    @db.Text
+  logo        String?
+  isPremium   Boolean   @default(false)
+  status      String    @default("pending") // pending | active | suspended
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id])
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  description String   @db.Text
+  priceRange  String
+  moq         Int
+  image       String
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Quote {
+  id         String   @id @default(cuid())
+  productId  String
+  buyerEmail String
+  buyerName  String
+  message    String   @db.Text
+  quantity   Int      @default(1)
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+}
+
+model SiteMetric {
+  id          String @id @default("singleton")
+  totalVisits Int    @default(0)
+  totalQuotes Int    @default(0)
+  totalMessages Int  @default(0)
+}

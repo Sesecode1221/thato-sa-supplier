@@ -1,0 +1,124 @@
+import { gql } from '@apollo/client';
+
+export const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      user { id email name role company supplier { id companyName status } }
+    }
+  }
+`;
+
+export const REGISTER = gql`
+  mutation Register($email: String!, $password: String!, $name: String!, $role: String!, $company: String, $location: String, $phone: String, $description: String) {
+    register(email: $email, password: $password, name: $name, role: $role, company: $company, location: $location, phone: $phone, description: $description) {
+      token
+      user { id email name role company supplier { id companyName status } }
+    }
+  }
+`;
+
+export const ME = gql`
+  query Me {
+    me { id email name role company supplier { id companyName location phone email description logo isPremium status } }
+  }
+`;
+
+export const GET_PRODUCTS = gql`
+  query GetProducts($search: String, $category: String) {
+    products(search: $search, category: $category) {
+      id name category description priceRange moq image
+      supplier { id companyName location isPremium status }
+    }
+  }
+`;
+
+export const GET_SUPPLIERS = gql`
+  query GetSuppliers($status: String) {
+    suppliers(status: $status) {
+      id companyName location phone email description logo isPremium status productCount
+    }
+  }
+`;
+
+export const GET_CATEGORIES = gql`
+  query GetCategories { categories }
+`;
+
+export const GET_METRICS = gql`
+  query GetMetrics { metrics { totalVisits totalQuotes totalMessages } }
+`;
+
+export const GET_ALL_SUPPLIERS_ADMIN = gql`
+  query GetAllSuppliers {
+    suppliers {
+      id companyName location phone email description logo isPremium status productCount
+    }
+  }
+`;
+
+export const SUBMIT_QUOTE = gql`
+  mutation SubmitQuote($productId: String!, $buyerName: String!, $buyerEmail: String!, $message: String!, $quantity: Int) {
+    submitQuote(productId: $productId, buyerName: $buyerName, buyerEmail: $buyerEmail, message: $message, quantity: $quantity) {
+      id status
+    }
+  }
+`;
+
+export const SEND_MESSAGE = gql`
+  mutation SendMessage($supplierId: String!, $message: String!) {
+    sendMessage(supplierId: $supplierId, message: $message)
+  }
+`;
+
+export const ADD_PRODUCT = gql`
+  mutation AddProduct($name: String!, $category: String!, $description: String!, $priceRange: String!, $moq: Int!, $image: String) {
+    addProduct(name: $name, category: $category, description: $description, priceRange: $priceRange, moq: $moq, image: $image) {
+      id name category description priceRange moq image supplier { id companyName }
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT = gql`
+  mutation UpdateProduct($id: String!, $name: String, $category: String, $description: String, $priceRange: String, $moq: Int, $image: String) {
+    updateProduct(id: $id, name: $name, category: $category, description: $description, priceRange: $priceRange, moq: $moq, image: $image) {
+      id name category description priceRange moq image
+    }
+  }
+`;
+
+export const DELETE_PRODUCT = gql`
+  mutation DeleteProduct($id: String!) { deleteProduct(id: $id) }
+`;
+
+export const UPDATE_SUPPLIER_STATUS = gql`
+  mutation UpdateSupplierStatus($id: String!, $status: String!) {
+    updateSupplierStatus(id: $id, status: $status) { id status companyName }
+  }
+`;
+
+export const UPDATE_SUPPLIER_PERMISSIONS = gql`
+  mutation UpdateSupplierPermissions($id: String!, $isPremium: Boolean) {
+    updateSupplierPermissions(id: $id, isPremium: $isPremium) { id isPremium companyName }
+  }
+`;
+
+export const DELETE_SUPPLIER = gql`
+  mutation DeleteSupplier($id: String!) { deleteSupplier(id: $id) }
+`;
+
+export const UPDATE_PROFILE = gql`
+  mutation UpdateProfile($name: String, $company: String, $phone: String, $location: String, $description: String, $email: String) {
+    updateProfile(name: $name, company: $company, phone: $phone, location: $location, description: $description, email: $email) {
+      id email name role company supplier { id companyName location phone email description }
+    }
+  }
+`;
+
+export const GET_SUPPLIER_PRODUCTS = gql`
+  query GetSupplierProducts($supplierId: String!) {
+    products(supplierId: $supplierId) {
+      id name category description priceRange moq image supplier { id companyName }
+    }
+  }
+`;
