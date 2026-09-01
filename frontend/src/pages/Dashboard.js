@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_SUPPLIER_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT } from '../graphql/operations';
+import { GET_SUPPLIER_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT, GET_SUPPLIER_COMPETITIVENESS } from '../graphql/operations';
 import { useAuth } from '../AuthContext';
 import Modal from '../components/Modal';
 import { useToast } from '../components/Toast';
+import GeminiProductViabilityModal from '../components/GeminiProductViabilityModal';
+import GeminiProductOptimizerModal from '../components/GeminiProductOptimizerModal';
 
 const CATS = ['Clothing', 'PPE', 'Furniture', 'Packaging', 'Chemicals', 'Electronics', 'Food & Beverage', 'General'];
 const MAX_PRODUCTS = 25;
@@ -14,6 +16,10 @@ export default function Dashboard() {
   const supplierId = user?.supplier?.id;
 
   const { data, loading, refetch } = useQuery(GET_SUPPLIER_PRODUCTS, {
+    variables: { supplierId: supplierId || '' }, skip: !supplierId
+  });
+
+  const { data: compData, loading: compLoading, refetch: refetchComp } = useQuery(GET_SUPPLIER_COMPETITIVENESS, {
     variables: { supplierId: supplierId || '' }, skip: !supplierId
   });
 
@@ -28,8 +34,13 @@ export default function Dashboard() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Gemini Modals state
+  const [analyzingProduct, setAnalyzingProduct] = useState(null);
+  const [showOptimizer, setShowOptimizer] = useState(false);
+
   const products = data?.products || [];
   const usagePercent = Math.min((products.length / MAX_PRODUCTS) * 100, 100);
+  const comp = compData?.getSupplierCompetitivenessAdvice;
 
   const openAdd = () => {
     setForm({ name: '', category: 'General', description: '', priceRange: '', moq: 50, image: '' });
@@ -37,6 +48,7 @@ export default function Dashboard() {
     setEditProd(null);
     setShowAdd(true);
   };
+
   const openEdit = (p) => {
     setForm({ name: p.name, category: p.category, description: p.description, priceRange: p.priceRange, moq: p.moq, image: p.image });
     setImagePreview(p.image || '');
@@ -103,18 +115,22 @@ export default function Dashboard() {
   const supplier = user.supplier;
 
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title" style={{ marginBottom: 0 }}>⚙️ {supplier?.companyName || user.name} Hub</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Manage your products and profile</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+            Manage your bulk catalog, analyze market viability, and optimize your SME competitiveness.
+          </p>
         </div>
-        <button className="btn-yellow" onClick={openAdd} disabled={products.length >= MAX_PRODUCTS}>
-          <i className="fas fa-plus-circle"></i> Add New Product
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn-yellow" onClick={openAdd} disabled={products.length >= MAX_PRODUCTS}>
+            <i className="fas fa-plus-circle"></i> Add New Product
+          </button>
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Bar */}
       <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
           <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Product Listings</div>
@@ -129,7 +145,73 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Gemini AI Competitiveness Advisor Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #181816 0%, #242211 100%)',
+        border: '1px solid #5a4b14',
+        borderRadius: 10,
+        padding: '1.25rem',
+        marginBottom: '2rem'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span style={{ background: 'var(--yellow)', color: '#000', padding: '0.2rem 0.5rem', borderRadius: 4, fontWeight: 800, fontSize: '0.75rem' }}>
+              GEMINI AI
+            </span>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>
+              Supplier Competitiveness & Market Strategy Advisor
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Competitiveness Score: <strong style={{ color: '#22c55e', fontSize: '1rem' }}>{comp?.competitiveScore || 88}%</strong>
+            </span>
+            <button className="btn-outline btn-sm" onClick={() => refetchComp()} disabled={compLoading}>
+              <i className={`fas fa-sync-alt ${compLoading ? 'fa-spin' : ''}`}></i>
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginTop: '0.75rem' }}>
+          <div style={{ background: 'var(--bg2)', padding: '0.85rem', borderRadius: 6, border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--yellow)', marginBottom: '0.4rem' }}>
+              <i className="fas fa-bullseye"></i> Winning Pricing Strategy
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+              {comp?.pricingStrategies?.[0] || 'Provide 3-tier volume pricing to attract small and enterprise buyers.'}
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--bg2)', padding: '0.85rem', borderRadius: 6, border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#60a5fa', marginBottom: '0.4rem' }}>
+              <i className="fas fa-truck"></i> Speed & Logistics Edge
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+              {comp?.operationalTips?.[0] || 'Commit to 24-48hr dispatch across major South African metropolitan corridors.'}
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--bg2)', padding: '0.85rem', borderRadius: 6, border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4ade80', marginBottom: '0.4rem' }}>
+              <i className="fas fa-award"></i> Local SA SME Advantage
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+              {comp?.localAdvantageTips?.[0] || 'Highlight instant warranty & local customer support over import competitors.'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Products grid */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>
+          Your Listed Products ({products.length})
+        </h2>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          Click <strong style={{ color: 'var(--yellow)' }}>✨ AI Viability</strong> on any item to run deep market analysis
+        </span>
+      </div>
+
       {loading ? (
         <p style={{ color: 'var(--text-muted)' }}>Loading products...</p>
       ) : products.length === 0 ? (
@@ -139,21 +221,49 @@ export default function Dashboard() {
           <button className="btn-yellow" style={{ marginTop: '1rem' }} onClick={openAdd}>Add First Product</button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
           {products.map(p => (
-            <div key={p.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '1rem', display: 'flex', gap: '0.75rem' }}>
-              <img src={p.image} alt={p.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
-                onError={e => { e.target.src = 'https://picsum.photos/100/100?grayscale'; }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{p.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.category} | MOQ {p.moq}</div>
-                <div style={{ color: 'var(--yellow)', fontWeight: 700, fontSize: '0.85rem', margin: '0.25rem 0' }}>{p.priceRange}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.description}</div>
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <button style={{ background: 'none', color: 'var(--info)', fontSize: '0.78rem', fontWeight: 600 }} onClick={() => openEdit(p)}>
+            <div key={p.id} style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 8, padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <img src={p.image} alt={p.name} style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
+                  onError={e => { e.target.src = 'https://picsum.photos/100/100?grayscale'; }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.25rem', lineHeight: 1.3 }}>{p.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.category} | MOQ {p.moq}</div>
+                  <div style={{ color: 'var(--yellow)', fontWeight: 700, fontSize: '0.85rem', margin: '0.25rem 0' }}>{p.priceRange}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    {p.description}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons with Gemini AI button */}
+              <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '0.6rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setAnalyzingProduct(p)}
+                  style={{
+                    background: 'rgba(245, 197, 24, 0.12)',
+                    border: '1px solid rgba(245, 197, 24, 0.35)',
+                    color: 'var(--yellow)',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: 4,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <i className="fas fa-brain"></i> AI Viability Check
+                </button>
+
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button style={{ background: 'none', color: 'var(--info)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }} onClick={() => openEdit(p)}>
                     <i className="fas fa-edit"></i> Edit
                   </button>
-                  <button style={{ background: 'none', color: 'var(--error)', fontSize: '0.78rem', fontWeight: 600 }} onClick={() => handleDelete(p.id)}>
+                  <button style={{ background: 'none', color: 'var(--error)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }} onClick={() => handleDelete(p.id)}>
                     <i className="fas fa-trash"></i> Delete
                   </button>
                 </div>
@@ -163,9 +273,23 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Add / Edit Modal */}
+      {/* Add / Edit Modal with AI Optimizer */}
       {showAdd && (
         <Modal title={editProd ? '✏️ Edit Product' : '📦 Add New Product'} onClose={() => setShowAdd(false)} large>
+          <div style={{ marginBottom: '1rem', background: 'var(--bg3)', padding: '0.65rem 0.85rem', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <i className="fas fa-sparkles" style={{ color: 'var(--yellow)', marginRight: '0.3rem' }}></i>
+              Want high-converting B2B catalog copy and ZAR price recommendations?
+            </span>
+            <button
+              type="button"
+              className="btn-yellow btn-sm"
+              onClick={() => setShowOptimizer(true)}
+            >
+              ✨ Optimize with Gemini AI
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="input-group" style={{ gridColumn: '1/-1' }}>
@@ -184,7 +308,7 @@ export default function Dashboard() {
               </div>
               <div className="input-group" style={{ gridColumn: '1/-1' }}>
                 <label className="input-label">Description</label>
-                <textarea className="input" rows="2" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Product details..." style={{ resize: 'vertical' }} />
+                <textarea className="input" rows="3" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Product details, specs, and commercial terms..." style={{ resize: 'vertical' }} />
               </div>
               <div className="input-group">
                 <label className="input-label">Price Range</label>
@@ -192,7 +316,6 @@ export default function Dashboard() {
               </div>
               <div className="input-group">
                 <label className="input-label">Product Image</label>
-                {/* Drop zone */}
                 <div
                   onClick={() => fileInputRef.current && fileInputRef.current.click()}
                   onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -248,12 +371,36 @@ export default function Dashboard() {
                 />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
               <button type="submit" className="btn-yellow" style={{ flex: 1 }}>{editProd ? 'Update Product' : 'Add Product'}</button>
               <button type="button" className="btn-outline" onClick={() => setShowAdd(false)}>Cancel</button>
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Gemini AI Modals */}
+      {analyzingProduct && (
+        <GeminiProductViabilityModal
+          product={analyzingProduct}
+          onClose={() => setAnalyzingProduct(null)}
+        />
+      )}
+
+      {showOptimizer && (
+        <GeminiProductOptimizerModal
+          initialData={form}
+          onApply={(optimized) => {
+            setForm(f => ({
+              ...f,
+              name: optimized.name || f.name,
+              description: optimized.description || f.description,
+              priceRange: optimized.priceRange || f.priceRange,
+              moq: optimized.moq || f.moq
+            }));
+          }}
+          onClose={() => setShowOptimizer(false)}
+        />
       )}
     </div>
   );

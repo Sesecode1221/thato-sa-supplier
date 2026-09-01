@@ -3,13 +3,15 @@ import { useQuery, useMutation } from '@apollo/client';
 import { GET_PRODUCTS, GET_CATEGORIES, SUBMIT_QUOTE } from '../graphql/operations';
 import Modal from '../components/Modal';
 import { useToast } from '../components/Toast';
+import GeminiProductViabilityModal from '../components/GeminiProductViabilityModal';
 
-export default function Marketplace() {
+export default function Marketplace({ setActiveTab }) {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [selected, setSelected] = useState(null);
   const [quoteProduct, setQuoteProduct] = useState(null);
+  const [analyzingProduct, setAnalyzingProduct] = useState(null);
 
   const { data, loading } = useQuery(GET_PRODUCTS, {
     variables: { search: search || undefined, category: category || undefined },
@@ -36,10 +38,23 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="page-container">
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>🇿🇦 Source Locally. Buy Smarter.</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Verified bulk suppliers, MOQs & instant quotes</p>
+    <div className="page-container" style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>🇿🇦 Source Locally. Buy Smarter.</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            Verified South African bulk suppliers, real MOQs & instant quotes powered by Gemini AI Market Intelligence
+          </p>
+        </div>
+        {setActiveTab && (
+          <button
+            className="btn-yellow btn-sm"
+            onClick={() => setActiveTab('ai-insights')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <i className="fas fa-brain"></i> Gemini Market Intelligence
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -79,8 +94,35 @@ export default function Marketplace() {
         <div className="products-grid">
           {products.map(p => (
             <div className="product-card" key={p.id}>
-              <img className="product-card-img" src={p.image} alt={p.name}
-                onError={e => { e.target.src = 'https://picsum.photos/400/300?grayscale'; }} />
+              <div style={{ position: 'relative' }}>
+                <img className="product-card-img" src={p.image} alt={p.name}
+                  onError={e => { e.target.src = 'https://picsum.photos/400/300?grayscale'; }} />
+                <button
+                  type="button"
+                  onClick={() => setAnalyzingProduct(p)}
+                  title="Run Gemini AI Viability Analysis"
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    background: 'rgba(0,0,0,0.75)',
+                    border: '1px solid var(--yellow)',
+                    color: 'var(--yellow)',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(4px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                >
+                  <i className="fas fa-brain"></i> AI Viable
+                </button>
+              </div>
+
               <div className="product-card-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.4rem' }}>
                   <div className="product-card-name">{p.name}</div>
@@ -118,7 +160,18 @@ export default function Marketplace() {
             <div><span style={{ color: 'var(--text-dim)' }}>Category</span><br /><strong>{selected.category}</strong></div>
             <div><span style={{ color: 'var(--text-dim)' }}>Supplier</span><br /><strong>{selected.supplier?.companyName}</strong></div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn-outline"
+              style={{ color: 'var(--yellow)', borderColor: 'var(--yellow)' }}
+              onClick={() => {
+                const prod = selected;
+                setSelected(null);
+                setAnalyzingProduct(prod);
+              }}
+            >
+              <i className="fas fa-brain"></i> AI Viability Analysis
+            </button>
             <button className="btn-yellow" style={{ flex: 1 }} onClick={() => { setSelected(null); setQuoteProduct(selected); }}>
               Request Quote
             </button>
@@ -155,6 +208,14 @@ export default function Marketplace() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Gemini AI Viability Modal */}
+      {analyzingProduct && (
+        <GeminiProductViabilityModal
+          product={analyzingProduct}
+          onClose={() => setAnalyzingProduct(null)}
+        />
       )}
     </div>
   );

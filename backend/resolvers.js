@@ -1,6 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('./db');
+const {
+  analyzeProductViabilityWithGemini,
+  getSupplierCompetitivenessAdviceWithGemini,
+  getMarketViabilityRecommendationsWithGemini,
+  optimizeProductListingWithGemini
+} = require('./geminiService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sasuppliers_secret';
 
@@ -61,6 +67,70 @@ const resolvers = {
     categories: async () => {
       const cats = await prisma.product.groupBy({ by: ['category'] });
       return cats.map(c => c.category);
+    },
+
+    // Gemini AI Queries
+    analyzeProductViability: async (_, { id, name, category, priceRange, moq, description }) => {
+      let prod = { name, category, priceRange, moq, description };
+      if (id) {
+        const found = await prisma.product.findUnique({ where: { id }, include: { supplier: true } });
+        if (found) {
+          prod = {
+            name: name || found.name,
+            category: category || found.category,
+            priceRange: priceRange || found.priceRange,
+            moq: moq || found.moq,
+            description: description || found.description
+          };
+        }
+      }
+      return analyzeProductViabilityWithGemini(prod);
+    },
+
+    getSupplierCompetitivenessAdvice: async (_, { supplierId, categoryFocus }, ctx) => {
+      let targetSupplierId = supplierId;
+      if (!targetSupplierId && ctx?.user) {
+        const userRecord = await prisma.user.findUnique({ where: { id: ctx.user.id }, include: { supplier: true } });
+        targetSupplierId = userRecord?.supplier?.id;
+      }
+
+      let supplierName = 'South African SME Supplier';
+      let location = 'Johannesburg / Gauteng, South Africa';
+      let productsCount = 5;
+      let catFocus = categoryFocus || 'General Wholesale & Manufacturing';
+
+      if (targetSupplierId) {
+        const sup = await prisma.supplier.findUnique({ where: { id: targetSupplierId }, include: { products: true } });
+        if (sup) {
+          supplierName = sup.companyName;
+          location = sup.location || location;
+          productsCount = sup.products?.length || 0;
+          if (sup.products?.length > 0 && !categoryFocus) {
+            catFocus = sup.products[0].category;
+          }
+        }
+      }
+
+      return getSupplierCompetitivenessAdviceWithGemini({
+        supplierName,
+        location,
+        categoryFocus: catFocus,
+        currentProductsCount: productsCount
+      });
+    },
+
+    getMarketViabilityRecommendations: async (_, { industry }) => {
+      return getMarketViabilityRecommendationsWithGemini({ industry });
+    },
+
+    optimizeProductListing: async (_, { name, category, targetAudience, currentPrice, currentMoq }) => {
+      return optimizeProductListingWithGemini({
+        name,
+        category,
+        targetAudience,
+        currentPrice,
+        currentMoq
+      });
     }
   },
 
@@ -81,7 +151,7 @@ const resolvers = {
       let userData = { email, password: hashed, name, role, company };
 
       if (role === 'supplier') {
-        const autoApprove = true; // could read from DB settings
+        const autoApprove = true;
         userData.supplier = {
           create: {
             companyName: company || name,

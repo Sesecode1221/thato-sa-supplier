@@ -1,7 +1,8 @@
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
-const uri = '/graphql';
+// Works natively in both Vercel Serverless (/api/graphql) and Express Server
+const uri = '/api/graphql';
 
 const httpLink = createHttpLink({ uri });
 

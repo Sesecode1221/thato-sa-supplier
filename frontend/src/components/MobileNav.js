@@ -4,11 +4,12 @@ import { useAuth } from '../AuthContext';
 const BASE_TABS = [
   { tab: 'landing', icon: 'fa-home', label: 'Home' },
   { tab: 'marketplace', icon: 'fa-th-large', label: 'Products' },
+  { tab: 'ai-insights', icon: 'fa-brain', label: 'AI Market' },
   { tab: 'suppliers', icon: 'fa-store', label: 'Suppliers' },
 ];
 
 export default function MobileNav({ activeTab, setActiveTab, onLogin }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const tabs = [
     ...BASE_TABS,
@@ -16,13 +17,11 @@ export default function MobileNav({ activeTab, setActiveTab, onLogin }) {
       ? (user.role === 'supplier' || user.role === 'admin'
           ? { tab: 'dashboard', icon: 'fa-tachometer-alt', label: 'Hub' }
           : null)
-      : { tab: '__login', icon: 'fa-user', label: 'Login' },
-    { tab: '__whatsapp', icon: 'fa-whatsapp fab', label: 'WhatsApp' },
+      : { tab: '__login', icon: 'fa-user', label: 'Login' }
   ].filter(Boolean);
 
   const handleTab = (tab) => {
     if (tab === '__login') { onLogin(); return; }
-    if (tab === '__whatsapp') { window.open('https://wa.me/27710000000', '_blank'); return; }
     setActiveTab(tab);
   };
 

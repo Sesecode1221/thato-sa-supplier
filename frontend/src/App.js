@@ -9,6 +9,7 @@ import Marketplace from './pages/Marketplace';
 import Suppliers from './pages/Suppliers';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
+import AIInsights from './pages/AIInsights';
 import { HowItWorks, About, Contact } from './pages/StaticPages';
 
 export default function App() {
@@ -49,7 +50,8 @@ export default function App() {
 
       <main>
         {activeTab === 'landing' && <Landing setActiveTab={navTo} onRegister={() => setAuthModal('register')} />}
-        {activeTab === 'marketplace' && <Marketplace />}
+        {activeTab === 'marketplace' && <Marketplace setActiveTab={navTo} />}
+        {activeTab === 'ai-insights' && <AIInsights setActiveTab={navTo} />}
         {activeTab === 'suppliers' && <Suppliers />}
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'admin' && <Admin />}

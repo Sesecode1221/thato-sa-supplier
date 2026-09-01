@@ -12,7 +12,7 @@ export default function Landing({ setActiveTab, onRegister }) {
       {/* ── HERO ── */}
       <div className="hero">
         <div className="hero-content">
-          <p className="hero-pretitle">South Africa's B2B Marketplace</p>
+          <p className="hero-pretitle">South Africa's B2B Marketplace & AI Intelligence</p>
           <h1>
             YOUR SOURCE FOR<br />
             <span>QUALITY INTERMEDIATE</span>
@@ -20,14 +20,14 @@ export default function Landing({ setActiveTab, onRegister }) {
           </h1>
           <p className="hero-sub">
             Unbranded. Bulk quantities. Competitive prices.<br />
-            Everything your business needs to manufacture, package and grow.
+            Powered by Gemini AI to analyze viable products, optimize catalogs, and help South African suppliers stay competitive.
           </p>
           <div className="hero-btns">
             <button className="btn-yellow" onClick={() => setActiveTab('marketplace')}>
               BROWSE PRODUCTS &nbsp;→
             </button>
-            <button className="btn-outline" onClick={() => setActiveTab('how-it-works')}>
-              HOW IT WORKS
+            <button className="btn-outline" onClick={() => setActiveTab('ai-insights')}>
+              ✨ AI MARKET INTELLIGENCE
             </button>
           </div>
         </div>
@@ -43,10 +43,10 @@ export default function Landing({ setActiveTab, onRegister }) {
       {/* ── FEATURES STRIP ── */}
       <div className="features-strip">
         {[
+          { icon: 'fa-brain', title: 'GEMINI AI INSIGHTS', desc: 'Predict high-demand products & margins' },
           { icon: 'fa-boxes', title: 'BULK PRICING', desc: 'Better prices with higher quantities' },
-          { icon: 'fa-layer-group', title: 'LOW MINIMUMS', desc: 'Accessible minimum order quantities' },
           { icon: 'fa-truck', title: 'NATIONWIDE DELIVERY', desc: 'Fast and reliable delivery across South Africa' },
-          { icon: 'fa-shield-alt', title: 'TRUSTED SUPPLIER', desc: 'Quality products. Reliable service.' },
+          { icon: 'fa-shield-alt', title: 'TRUSTED SA SUPPLIERS', desc: 'Verified local stock & SABS compliance' },
         ].map(f => (
           <div className="feature-item" key={f.title}>
             <div className="feature-icon"><i className={`fas ${f.icon}`}></i></div>
@@ -56,6 +56,36 @@ export default function Landing({ setActiveTab, onRegister }) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── AI MARKET SPOTLIGHT BANNER ── */}
+      <div style={{ padding: '0 1.5rem', maxWidth: 1200, margin: '2rem auto 0 auto' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #181814 0%, #292612 100%)',
+          border: '1px solid #5a4b14',
+          borderRadius: 12,
+          padding: '1.75rem 2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1.25rem'
+        }}>
+          <div>
+            <span style={{ background: 'var(--yellow)', color: '#000', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: 4, textTransform: 'uppercase' }}>
+              Gemini 3.7 Flash
+            </span>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+              Want to know which products are most viable to supply in South Africa?
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: 650 }}>
+              Access AI-driven margin forecasts, optimal MOQ benchmarks, and local resilience strategies to outperform cheap imports.
+            </p>
+          </div>
+          <button className="btn-yellow" onClick={() => setActiveTab('ai-insights')}>
+            Explore AI Insights &nbsp;→
+          </button>
+        </div>
       </div>
 
       {/* ── POPULAR PRODUCTS ── */}
@@ -79,7 +109,7 @@ export default function Landing({ setActiveTab, onRegister }) {
                 <div className="product-card-body">
                   <div className="product-card-name">{p.name}</div>
                   <div className="product-card-meta">
-                    <span>Material: {p.category}</span>
+                    <span>Category: {p.category}</span>
                     <span>MOQ: {p.moq} units</span>
                   </div>
                   <div className="product-card-price">{p.priceRange} / unit</div>
@@ -127,9 +157,9 @@ export default function Landing({ setActiveTab, onRegister }) {
         <div className="section-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>📦 SUPPLIER SUBSCRIPTION PLANS</div>
         <div className="packages-grid">
           {[
-            { icon: '🌱', name: 'Starter', price: 'R49', period: '/month', badge: null, features: ['Up to 10 product listings','Basic profile & contact','Quote requests via email'], no: ['Premium badge'], btn: 'Get Started', cls: '' },
-            { icon: '📈', name: 'Pro', price: 'R99', period: '/month', badge: 'Most Popular', features: ['Up to 50 product listings','Verified badge & higher ranking','Direct messaging + quote dashboard','Analytics: views & quote volume'], no: [], btn: 'Start 14-day trial', cls: 'featured' },
-            { icon: '👑', name: 'Enterprise', price: 'R249', period: '/month', badge: null, features: ['Unlimited products','Priority support & featured placement','Logistics API integration ready','Cross-border trade (SADC)'], no: [], btn: 'Contact Sales', cls: '' },
+            { icon: '🌱', name: 'Starter', price: 'R49', period: '/month', badge: null, features: ['Up to 10 product listings','Basic profile & contact','Quote requests via email', 'Gemini AI product viability check'], no: ['Premium badge'], btn: 'Get Started', cls: '' },
+            { icon: '📈', name: 'Pro', price: 'R99', period: '/month', badge: 'Most Popular', features: ['Up to 50 product listings','Verified badge & higher ranking','Direct messaging + quote dashboard','AI Competitiveness Roadmap','Analytics: views & quote volume'], no: [], btn: 'Start 14-day trial', cls: 'featured' },
+            { icon: '👑', name: 'Enterprise', price: 'R249', period: '/month', badge: null, features: ['Unlimited products','Priority support & featured placement','AI Market Intelligence & Margin Predictor','Logistics API integration ready'], no: [], btn: 'Contact Sales', cls: '' },
           ].map(pkg => (
             <div className={`package-card ${pkg.cls}`} key={pkg.name}>
               {pkg.badge && <div className="package-badge">{pkg.badge}</div>}

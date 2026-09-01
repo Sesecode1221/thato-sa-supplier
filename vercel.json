@@ -12,7 +12,11 @@
     }
   ],
   "routes": [
+    { "src": "/api/graphql", "dest": "/api/graphql.js" },
     { "src": "/api/(.*)", "dest": "/api/graphql.js" },
-    { "src": "/(.*)", "dest": "/frontend/$1" }
+    { "src": "/static/(.*)", "dest": "/frontend/static/$1" },
+    { "src": "/favicon.ico", "dest": "/frontend/favicon.ico" },
+    { "src": "/manifest.json", "dest": "/frontend/manifest.json" },
+    { "src": "/(.*)", "dest": "/frontend/index.html" }
   ]
 }

@@ -9,7 +9,7 @@ export default function Header({ activeTab, setActiveTab, onLogin, onRegister })
 
   return (
     <header className="header">
-      <div className="logo" onClick={() => nav('landing')}>
+      <div className="logo" onClick={() => nav('landing')} style={{ cursor: 'pointer' }}>
         <span className="logo-sa">SA</span>
         <span className="logo-suppliers">suppliers</span>
         <span className="logo-dot">.</span>
@@ -17,8 +17,22 @@ export default function Header({ activeTab, setActiveTab, onLogin, onRegister })
       </div>
 
       <nav className="nav">
-        {[['landing','Home'],['marketplace','Products'],['how-it-works','How It Works'],['about','About Us'],['contact','Contact Us']].map(([tab, label]) => (
-          <button key={tab} className={`nav-btn${activeTab === tab ? ' active' : ''}`} onClick={() => nav(tab)}>{label}</button>
+        {[
+          ['landing', 'Home'],
+          ['marketplace', 'Products'],
+          ['ai-insights', '✨ AI Market Insights'],
+          ['how-it-works', 'How It Works'],
+          ['about', 'About Us'],
+          ['contact', 'Contact Us']
+        ].map(([tab, label]) => (
+          <button
+            key={tab}
+            className={`nav-btn${activeTab === tab ? ' active' : ''}`}
+            onClick={() => nav(tab)}
+            style={tab === 'ai-insights' ? { color: activeTab === 'ai-insights' ? 'var(--yellow)' : '#fef08a' } : {}}
+          >
+            {label}
+          </button>
         ))}
         {(user?.role === 'supplier' || user?.role === 'admin') && (
           <button className={`nav-btn${activeTab === 'dashboard' ? ' active' : ''}`} onClick={() => nav('dashboard')}>Supplier Hub</button>
@@ -39,9 +53,8 @@ export default function Header({ activeTab, setActiveTab, onLogin, onRegister })
         ) : (
           <>
             <button className="btn-icon" onClick={onLogin}><i className="fas fa-user"></i> Login</button>
-            <button className="btn-yellow btn-sm" style={{ position: 'relative' }}>
-              <i className="fas fa-shopping-cart"></i>
-              <span className="cart-badge">0</span>
+            <button className="btn-yellow btn-sm" onClick={onRegister}>
+              Join as Supplier
             </button>
           </>
         )}

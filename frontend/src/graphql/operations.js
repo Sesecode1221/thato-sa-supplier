@@ -122,3 +122,67 @@ export const GET_SUPPLIER_PRODUCTS = gql`
     }
   }
 `;
+
+// Gemini AI GraphQL Operations
+export const ANALYZE_PRODUCT_VIABILITY = gql`
+  query AnalyzeProductViability($id: String, $name: String, $category: String, $priceRange: String, $moq: Int, $description: String) {
+    analyzeProductViability(id: $id, name: $name, category: $category, priceRange: $priceRange, moq: $moq, description: $description) {
+      viabilityScore
+      demandLevel
+      pricingAnalysis
+      competitiveStrengths
+      risksAndChallenges
+      actionableRecommendations
+      recommendedMOQ
+      marketTrends
+      sourcingStrategy
+      targetIndustries
+    }
+  }
+`;
+
+export const GET_SUPPLIER_COMPETITIVENESS = gql`
+  query GetSupplierCompetitiveness($supplierId: String, $categoryFocus: String) {
+    getSupplierCompetitivenessAdvice(supplierId: $supplierId, categoryFocus: $categoryFocus) {
+      competitiveScore
+      strategicPillars
+      pricingStrategies
+      operationalTips
+      localAdvantageTips
+      marketOpportunities
+    }
+  }
+`;
+
+export const GET_MARKET_VIABILITY_RECOMMENDATIONS = gql`
+  query GetMarketViabilityRecommendations($industry: String) {
+    getMarketViabilityRecommendations(industry: $industry) {
+      overview
+      topViableCategories
+      recommendations {
+        title
+        category
+        estimatedDemand
+        estimatedMargin
+        recommendedMOQ
+        whyViable
+        competitionLevel
+      }
+      supplierBestPractices
+      rawAnalysis
+    }
+  }
+`;
+
+export const OPTIMIZE_PRODUCT_LISTING = gql`
+  query OptimizeProductListing($name: String!, $category: String, $targetAudience: String, $currentPrice: String, $currentMoq: Int) {
+    optimizeProductListing(name: $name, category: $category, targetAudience: $targetAudience, currentPrice: $currentPrice, currentMoq: $currentMoq) {
+      optimizedTitle
+      optimizedDescription
+      suggestedPriceRange
+      suggestedMOQ
+      valuePropositions
+      targetBuyerPersona
+    }
+  }
+`;

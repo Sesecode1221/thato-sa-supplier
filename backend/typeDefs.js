@@ -57,6 +57,56 @@ const typeDefs = gql`
     user: User!
   }
 
+  # Gemini AI Intelligence Types
+  type AIProductViability {
+    viabilityScore: Int!
+    demandLevel: String!
+    pricingAnalysis: String!
+    competitiveStrengths: [String!]!
+    risksAndChallenges: [String!]!
+    actionableRecommendations: [String!]!
+    recommendedMOQ: Int!
+    marketTrends: String!
+    sourcingStrategy: String!
+    targetIndustries: [String!]!
+  }
+
+  type AISupplierCompetitiveness {
+    competitiveScore: Int!
+    strategicPillars: [String!]!
+    pricingStrategies: [String!]!
+    operationalTips: [String!]!
+    localAdvantageTips: [String!]!
+    marketOpportunities: [String!]!
+  }
+
+  type AIProductRecommendation {
+    title: String!
+    category: String!
+    estimatedDemand: String!
+    estimatedMargin: String!
+    recommendedMOQ: String!
+    whyViable: String!
+    competitionLevel: String!
+  }
+
+  type AIMarketInsights {
+    overview: String!
+    topViableCategories: [String!]!
+    recommendations: [AIProductRecommendation!]!
+    supplierBestPractices: [String!]!
+    rawAnalysis: String
+  }
+
+  type AIProductOptimization {
+    optimizedTitle: String!
+    optimizedDescription: String!
+    suggestedPriceRange: String!
+    suggestedMOQ: Int!
+    valuePropositions: [String!]!
+    targetBuyerPersona: String!
+  }
+
   type Query {
     me: User
     suppliers(status: String): [Supplier!]!
@@ -66,6 +116,12 @@ const typeDefs = gql`
     quotes: [Quote!]!
     metrics: SiteMetric!
     categories: [String!]!
+
+    # Gemini AI Queries
+    analyzeProductViability(id: String, name: String, category: String, priceRange: String, moq: Int, description: String): AIProductViability!
+    getSupplierCompetitivenessAdvice(supplierId: String, categoryFocus: String): AISupplierCompetitiveness!
+    getMarketViabilityRecommendations(industry: String): AIMarketInsights!
+    optimizeProductListing(name: String!, category: String, targetAudience: String, currentPrice: String, currentMoq: Int): AIProductOptimization!
   }
 
   type Mutation {
