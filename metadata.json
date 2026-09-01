@@ -1,0 +1,6 @@
+{
+  "name": "SAsuppliers.com",
+  "description": "B2B Marketplace for South African SMEs connecting suppliers and buyers",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

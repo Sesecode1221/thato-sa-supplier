@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { ApolloServer } = require('@apollo/server');
@@ -8,17 +9,17 @@ const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sasuppliers_secret';
-const PORT = process.env.PORT || 4000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 async function start() {
   const app = express();
-  app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
-  app.use(express.json());
+  app.use(cors());
+  app.use(express.json({ limit: '10mb' }));
 
   const server = new ApolloServer({ typeDefs, resolvers });
   await server.start();
 
-  app.use('/graphql', expressMiddleware(server, {
+  const graphqlHandler = expressMiddleware(server, {
     context: async ({ req }) => {
       const auth = req.headers.authorization || '';
       if (auth.startsWith('Bearer ')) {
@@ -29,11 +30,29 @@ async function start() {
       }
       return { user: null };
     }
-  }));
+  });
+
+  app.use('/graphql', graphqlHandler);
+  app.use('/api/graphql', graphqlHandler);
 
   app.get('/health', (_, res) => res.json({ status: 'ok' }));
+  app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
-  app.listen(PORT, () => console.log(`🚀 GraphQL ready at http://localhost:${PORT}/graphql`));
+  // Serve Frontend Static Assets
+  const buildPath = path.join(__dirname, '../frontend/build');
+  app.use(express.static(buildPath));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'), (err) => {
+      if (err) {
+        res.status(200).send('Building frontend... please refresh in a moment.');
+      }
+    });
+  });
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 SAsuppliers running on http://0.0.0.0:${PORT}`);
+  });
 }
 
 start().catch(console.error);
