@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_SUPPLIER_PRODUCTS, ADD_PRODUCT, UPDATE_PRODUCT, DELETE_PRODUCT } from '../graphql/operations';
 import { useAuth } from '../AuthContext';
@@ -24,12 +24,52 @@ export default function Dashboard() {
   const [showAdd, setShowAdd] = useState(false);
   const [editProd, setEditProd] = useState(null);
   const [form, setForm] = useState({ name: '', category: 'General', description: '', priceRange: '', moq: 50, image: '' });
+  const [imagePreview, setImagePreview] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const products = data?.products || [];
   const usagePercent = Math.min((products.length / MAX_PRODUCTS) * 100, 100);
 
-  const openAdd = () => { setForm({ name: '', category: 'General', description: '', priceRange: '', moq: 50, image: '' }); setEditProd(null); setShowAdd(true); };
-  const openEdit = (p) => { setForm({ name: p.name, category: p.category, description: p.description, priceRange: p.priceRange, moq: p.moq, image: p.image }); setEditProd(p); setShowAdd(true); };
+  const openAdd = () => {
+    setForm({ name: '', category: 'General', description: '', priceRange: '', moq: 50, image: '' });
+    setImagePreview('');
+    setEditProd(null);
+    setShowAdd(true);
+  };
+  const openEdit = (p) => {
+    setForm({ name: p.name, category: p.category, description: p.description, priceRange: p.priceRange, moq: p.moq, image: p.image });
+    setImagePreview(p.image || '');
+    setEditProd(p);
+    setShowAdd(true);
+  };
+
+  const handleImageFile = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('Please select an image file', 'error'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('Image must be under 5MB', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      setImagePreview(dataUrl);
+      setForm(f => ({ ...f, image: dataUrl }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileInput = (e) => handleImageFile(e.target.files[0]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    handleImageFile(e.dataTransfer.files[0]);
+  };
+
+  const clearImage = () => {
+    setImagePreview('');
+    setForm(f => ({ ...f, image: '' }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -151,8 +191,61 @@ export default function Dashboard() {
                 <input className="input" value={form.priceRange} onChange={e => setForm(f => ({ ...f, priceRange: e.target.value }))} placeholder="e.g. R 45 - R 85" />
               </div>
               <div className="input-group">
-                <label className="input-label">Image URL</label>
-                <input className="input" value={form.image} onChange={e => setForm(f => ({ ...f, image: e.target.value }))} placeholder="https://..." />
+                <label className="input-label">Product Image</label>
+                {/* Drop zone */}
+                <div
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  style={{
+                    border: `2px dashed ${dragOver ? 'var(--yellow)' : 'var(--border)'}`,
+                    borderRadius: 8,
+                    padding: imagePreview ? '0.5rem' : '1.25rem 1rem',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    background: dragOver ? 'rgba(255,200,0,0.05)' : 'var(--input-bg, var(--card-bg))',
+                    transition: 'border-color 0.2s, background 0.2s',
+                    position: 'relative',
+                  }}
+                >
+                  {imagePreview ? (
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        style={{ width: '100%', maxHeight: 140, objectFit: 'cover', borderRadius: 6, display: 'block' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); clearImage(); }}
+                        style={{
+                          position: 'absolute', top: 4, right: 4,
+                          background: 'rgba(0,0,0,0.65)', color: '#fff',
+                          border: 'none', borderRadius: '50%', width: 22, height: 22,
+                          cursor: 'pointer', fontSize: '0.7rem', lineHeight: '22px', padding: 0,
+                        }}
+                        title="Remove image"
+                      >✕</button>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
+                        Click to replace image
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <i className="fas fa-cloud-upload-alt" style={{ fontSize: '1.75rem', color: 'var(--yellow)', marginBottom: '0.4rem', display: 'block' }}></i>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.2rem' }}>Click to upload or drag & drop</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>PNG, JPG, WEBP — max 5MB</div>
+                    </>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInput}
+                  style={{ display: 'none' }}
+                />
               </div>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>

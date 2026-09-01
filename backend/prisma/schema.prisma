@@ -41,7 +41,7 @@ model Product {
   description String   @db.Text
   priceRange  String
   moq         Int
-  image       String
+  image       String  @db.LongText
   supplierId  String
   supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
