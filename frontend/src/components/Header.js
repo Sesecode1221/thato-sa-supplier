@@ -37,6 +37,9 @@ export default function Header({ activeTab, setActiveTab, onLogin, onRegister })
         {(user?.role === 'supplier' || user?.role === 'admin') && (
           <button className={`nav-btn${activeTab === 'dashboard' ? ' active' : ''}`} onClick={() => nav('dashboard')}>Supplier Hub</button>
         )}
+        {user?.role === 'buyer' && (
+          <button className={`nav-btn${activeTab === 'dashboard' ? ' active' : ''}`} onClick={() => nav('dashboard')}>📋 My RFQ Quotes</button>
+        )}
         {user?.role === 'admin' && (
           <button className={`nav-btn${activeTab === 'admin' ? ' active' : ''}`} onClick={() => nav('admin')}>Admin</button>
         )}

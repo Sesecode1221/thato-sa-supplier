@@ -19,8 +19,8 @@ export default function App() {
   const [authModal, setAuthModal] = useState(null); // 'login' | 'register'
 
   const navTo = (tab) => {
-    if (tab === 'dashboard' && (!user || (user.role !== 'supplier' && user.role !== 'admin'))) {
-      toast('Supplier login required', 'error'); setAuthModal('login'); return;
+    if (tab === 'dashboard' && !user) {
+      toast('Login required to access your Dashboard & Quote Tracker', 'error'); setAuthModal('login'); return;
     }
     if (tab === 'admin' && user?.role !== 'admin') {
       toast('Admin access only', 'error'); return;

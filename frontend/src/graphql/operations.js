@@ -28,7 +28,7 @@ export const GET_PRODUCTS = gql`
   query GetProducts($search: String, $category: String) {
     products(search: $search, category: $category) {
       id name category description priceRange moq image
-      supplier { id companyName location isPremium status }
+      supplier { id companyName location email isPremium status }
     }
   }
 `;
@@ -196,5 +196,67 @@ export const SUBMIT_CONTACT_INQUIRY = gql`
 export const TEST_EMAIL_ALERT = gql`
   mutation TestEmailAlert($recipient: String) {
     testEmailAlert(recipient: $recipient)
+  }
+`;
+
+export const GET_SUPPLIER_QUOTES = gql`
+  query GetSupplierQuotes {
+    supplierQuotes {
+      id
+      productId
+      buyerName
+      buyerEmail
+      message
+      quantity
+      status
+      createdAt
+      product {
+        id
+        name
+        priceRange
+        moq
+        supplier {
+          id
+          companyName
+          email
+        }
+      }
+    }
+  }
+`;
+
+export const GET_MY_BUYER_QUOTES = gql`
+  query GetMyBuyerQuotes {
+    myBuyerQuotes {
+      id
+      productId
+      buyerName
+      buyerEmail
+      message
+      quantity
+      status
+      createdAt
+      product {
+        id
+        name
+        priceRange
+        moq
+        supplier {
+          id
+          companyName
+          email
+          phone
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_QUOTE_STATUS = gql`
+  mutation UpdateQuoteStatus($id: String!, $status: String!) {
+    updateQuoteStatus(id: $id, status: $status) {
+      id
+      status
+    }
   }
 `;

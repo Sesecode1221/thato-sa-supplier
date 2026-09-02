@@ -288,9 +288,65 @@ async function sendContactInquiryAlert({ name, email, subject, message }) {
   });
 }
 
+/**
+ * Sends notification email to supplier when a direct message is sent from their profile
+ */
+async function sendSupplierMessageAlert({ supplierEmail, supplierName, senderName, senderEmail, message }) {
+  const subject = `[Direct Inquiry] ${senderName} sent a message to ${supplierName}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111111; color: #e5e5e5; padding: 24px; border-radius: 8px; border: 1px solid #333;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span style="font-size: 24px; font-weight: 800; color: #eab308; letter-spacing: -0.5px;">SA</span>
+        <span style="font-size: 24px; font-weight: 800; color: #ffffff;">suppliers</span>
+        <span style="font-size: 24px; font-weight: 800; color: #eab308;">.com</span>
+      </div>
+      
+      <div style="background-color: #1a1a1a; padding: 20px; border-radius: 6px; border-left: 4px solid #eab308; margin-bottom: 20px;">
+        <h2 style="color: #ffffff; font-size: 18px; margin-top: 0;">New Direct Message Received</h2>
+        <p style="color: #a3a3a3; font-size: 14px; margin-bottom: 0;">Hello <strong>${supplierName || 'Supplier'}</strong>, you have received a direct inquiry on SAsuppliers.com.</p>
+      </div>
+
+      <div style="background-color: #1c1c1c; padding: 18px; border-radius: 6px; margin-bottom: 20px;">
+        <h3 style="color: #eab308; font-size: 15px; margin-top: 0; text-transform: uppercase; letter-spacing: 0.5px;">Message Details</h3>
+        <table style="width: 100%; font-size: 14px; color: #d4d4d4; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 6px 0; color: #888; width: 130px;">From:</td>
+            <td style="padding: 6px 0; font-weight: 600; color: #fff;">${senderName} (<a href="mailto:${senderEmail}" style="color: #eab308; text-decoration: none;">${senderEmail}</a>)</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #888; vertical-align: top;">Message:</td>
+            <td style="padding: 6px 0; color: #fff; background: #262626; padding: 12px; border-radius: 4px; line-height: 1.6;">${message}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="text-align: center; margin-top: 24px;">
+        <a href="mailto:${senderEmail}?subject=Re:%20Inquiry%20on%20SAsuppliers.com" 
+           style="background-color: #eab308; color: #000000; font-weight: 700; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 14px;">
+          Reply to ${senderName} (${senderEmail})
+        </a>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0 15px 0;" />
+      <p style="text-align: center; font-size: 12px; color: #666; margin: 0;">
+        Powered by ${PLATFORM_NAME} &bull; South Africa's B2B Trade Marketplace
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: supplierEmail || ADMIN_ALERT_EMAIL,
+    subject,
+    html,
+    replyTo: senderEmail
+  });
+}
+
 module.exports = {
   sendSupplierQuoteAlert,
   sendBuyerQuoteConfirmation,
+  sendSupplierMessageAlert,
   sendContactInquiryAlert,
   sendEmail
 };

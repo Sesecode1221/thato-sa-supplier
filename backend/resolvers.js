@@ -10,6 +10,7 @@ const {
 const {
   sendSupplierQuoteAlert,
   sendBuyerQuoteConfirmation,
+  sendSupplierMessageAlert,
   sendContactInquiryAlert,
   sendEmail
 } = require('./emailService');
@@ -62,7 +63,33 @@ const resolvers = {
 
     quotes: async (_, __, ctx) => {
       requireRole(ctx, 'admin');
-      return prisma.quote.findMany({ orderBy: { createdAt: 'desc' } });
+      return prisma.quote.findMany({ orderBy: { createdAt: 'desc' }, include: { product: { include: { supplier: true } } } });
+    },
+
+    supplierQuotes: async (_, __, ctx) => {
+      const user = requireRole(ctx, 'supplier', 'admin');
+      let supplierId = null;
+      if (user.role === 'supplier') {
+        const userRecord = await prisma.user.findUnique({ where: { id: user.id }, include: { supplier: true } });
+        supplierId = userRecord?.supplier?.id;
+        if (!supplierId) return [];
+      }
+      return prisma.quote.findMany({
+        where: supplierId ? { product: { supplierId } } : {},
+        orderBy: { createdAt: 'desc' },
+        include: { product: { include: { supplier: true } } }
+      });
+    },
+
+    myBuyerQuotes: async (_, __, ctx) => {
+      const user = getUser(ctx);
+      const userRecord = await prisma.user.findUnique({ where: { id: user.id } });
+      if (!userRecord?.email) return [];
+      return prisma.quote.findMany({
+        where: { buyerEmail: userRecord.email },
+        orderBy: { createdAt: 'desc' },
+        include: { product: { include: { supplier: true } } }
+      });
     },
 
     metrics: async (_, __, ctx) => {
@@ -279,6 +306,49 @@ const resolvers = {
       return quote;
     },
 
+    updateQuoteStatus: async (_, { id, status }, ctx) => {
+      const user = requireRole(ctx, 'supplier', 'admin');
+      const quote = await prisma.quote.findUnique({
+        where: { id },
+        include: { product: { include: { supplier: true } } }
+      });
+      if (!quote) throw new Error('Quote not found');
+      if (user.role === 'supplier' && quote.product?.supplier?.userId !== user.id) {
+        throw new Error('Unauthorized');
+      }
+
+      const updated = await prisma.quote.update({
+        where: { id },
+        data: { status },
+        include: { product: { include: { supplier: true } } }
+      });
+
+      // Send status update notification to buyer
+      if (quote.buyerEmail) {
+        sendEmail({
+          to: quote.buyerEmail,
+          subject: `[Quote Status Updated: ${status.toUpperCase()}] Your RFQ for ${quote.product?.name || 'Product'}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111111; color: #e5e5e5; padding: 24px; border-radius: 8px; border: 1px solid #333;">
+              <h2 style="color: #eab308; font-size: 18px; margin-top: 0;">Quote Status Updated</h2>
+              <p>Hello <strong>${quote.buyerName}</strong>, your quote request for <strong>${quote.product?.name}</strong> has been updated to <strong style="color: #eab308; text-transform: uppercase;">${status}</strong> by <strong>${quote.product?.supplier?.companyName || 'the supplier'}</strong>.</p>
+              <div style="background: #1c1c1c; padding: 15px; border-radius: 6px; margin: 15px 0;">
+                <p style="margin: 0 0 6px 0;"><strong>Product:</strong> ${quote.product?.name}</p>
+                <p style="margin: 0 0 6px 0;"><strong>Quantity:</strong> ${quote.quantity} units</p>
+                <p style="margin: 0;"><strong>Supplier Contact:</strong> ${quote.product?.supplier?.email || 'sales@sasuppliers.com'}</p>
+              </div>
+              <a href="mailto:${quote.product?.supplier?.email || 'sales@sasuppliers.com'}" 
+                 style="background-color: #eab308; color: #000; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                Contact Supplier
+              </a>
+            </div>
+          `
+        }).catch(err => console.error('[Quote Status Email Error]', err.message));
+      }
+
+      return updated;
+    },
+
     sendMessage: async (_, { supplierId, message }, ctx) => {
       await prisma.siteMetric.update({ where: { id: 'singleton' }, data: { totalMessages: { increment: 1 } } });
       try {
@@ -287,22 +357,12 @@ const resolvers = {
         const senderEmail = ctx.user ? ctx.user.email : 'buyer@sasuppliers.com';
 
         if (supplier?.email) {
-          sendEmail({
-            to: supplier.email,
-            subject: `[New Inquiry] Message from ${senderName} on SAsuppliers.com`,
-            html: `
-              <div style="font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; border-radius: 8px;">
-                <h3 style="color: #eab308; margin-top: 0;">New Inquiry Received</h3>
-                <p><strong>From:</strong> ${senderName} (<a href="mailto:${senderEmail}" style="color: #eab308;">${senderEmail}</a>)</p>
-                <div style="background: #222; padding: 15px; border-radius: 6px; margin: 15px 0;">
-                  ${message}
-                </div>
-                <a href="mailto:${senderEmail}" style="background: #eab308; color: #000; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                  Reply to ${senderName}
-                </a>
-              </div>
-            `,
-            replyTo: senderEmail
+          sendSupplierMessageAlert({
+            supplierEmail: supplier.email,
+            supplierName: supplier.companyName,
+            senderName,
+            senderEmail,
+            message
           }).catch(err => console.error('[Message Email Error]', err.message));
         }
       } catch (e) {
@@ -376,6 +436,10 @@ const resolvers = {
 
   Product: {
     supplier: (parent) => prisma.supplier.findUnique({ where: { id: parent.supplierId } })
+  },
+
+  Quote: {
+    product: (parent) => parent.product || prisma.product.findUnique({ where: { id: parent.productId }, include: { supplier: true } })
   },
 
   User: {

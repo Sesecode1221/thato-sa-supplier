@@ -44,6 +44,7 @@ const typeDefs = gql`
     quantity: Int!
     status: String!
     createdAt: String!
+    product: Product
   }
 
   type SiteMetric {
@@ -114,6 +115,8 @@ const typeDefs = gql`
     products(search: String, category: String, supplierId: String): [Product!]!
     product(id: String!): Product
     quotes: [Quote!]!
+    supplierQuotes: [Quote!]!
+    myBuyerQuotes: [Quote!]!
     metrics: SiteMetric!
     categories: [String!]!
 
@@ -132,6 +135,7 @@ const typeDefs = gql`
     updateProduct(id: String!, name: String, category: String, description: String, priceRange: String, moq: Int, image: String): Product!
     deleteProduct(id: String!): Boolean!
     submitQuote(productId: String!, buyerName: String!, buyerEmail: String!, message: String!, quantity: Int): Quote!
+    updateQuoteStatus(id: String!, status: String!): Quote!
     sendMessage(supplierId: String!, message: String!): Boolean!
     submitContactInquiry(name: String!, email: String!, subject: String, message: String!): Boolean!
     testEmailAlert(recipient: String): Boolean!

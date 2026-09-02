@@ -16,7 +16,7 @@ export default function MobileNav({ activeTab, setActiveTab, onLogin }) {
     user
       ? (user.role === 'supplier' || user.role === 'admin'
           ? { tab: 'dashboard', icon: 'fa-tachometer-alt', label: 'Hub' }
-          : null)
+          : { tab: 'dashboard', icon: 'fa-file-invoice', label: 'Quotes' })
       : { tab: '__login', icon: 'fa-user', label: 'Login' }
   ].filter(Boolean);
 

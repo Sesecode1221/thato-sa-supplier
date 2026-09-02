@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_PRODUCTS, GET_CATEGORIES, SUBMIT_QUOTE } from '../graphql/operations';
 import Modal from '../components/Modal';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../AuthContext';
 import GeminiProductViabilityModal from '../components/GeminiProductViabilityModal';
 
 export default function Marketplace({ setActiveTab }) {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -24,16 +26,44 @@ export default function Marketplace({ setActiveTab }) {
 
   const [quoteForm, setQuoteForm] = useState({ buyerName: '', buyerEmail: '', message: '', quantity: 1 });
 
+  useEffect(() => {
+    if (user) {
+      setQuoteForm(f => ({
+        ...f,
+        buyerName: f.buyerName || user.name || '',
+        buyerEmail: f.buyerEmail || user.email || ''
+      }));
+    }
+  }, [user]);
+
+  const handleOpenQuote = (prod) => {
+    setQuoteProduct(prod);
+    setQuoteForm(f => ({
+      ...f,
+      buyerName: f.buyerName || user?.name || '',
+      buyerEmail: f.buyerEmail || user?.email || '',
+      quantity: prod.moq || 1
+    }));
+  };
+
   const handleQuote = async e => {
     e.preventDefault();
     if (!quoteForm.buyerName || !quoteForm.buyerEmail || !quoteForm.message) {
-      toast('Please fill all fields', 'error'); return;
+      toast('Please fill all required fields', 'error'); return;
     }
     try {
-      await submitQuote({ variables: { productId: quoteProduct.id, ...quoteForm, quantity: parseInt(quoteForm.quantity) } });
-      toast('Quote request sent!');
+      await submitQuote({
+        variables: {
+          productId: quoteProduct.id,
+          buyerName: quoteForm.buyerName.trim(),
+          buyerEmail: quoteForm.buyerEmail.trim(),
+          message: quoteForm.message.trim(),
+          quantity: parseInt(quoteForm.quantity) || 1
+        }
+      });
+      toast(`RFQ sent! ${quoteProduct.supplier?.companyName || 'Supplier'} has received your quote alert.`, 'success');
       setQuoteProduct(null);
-      setQuoteForm({ buyerName: '', buyerEmail: '', message: '', quantity: 1 });
+      setQuoteForm({ buyerName: user?.name || '', buyerEmail: user?.email || '', message: '', quantity: 1 });
     } catch (e) { toast(e.message, 'error'); }
   };
 
@@ -138,7 +168,7 @@ export default function Marketplace({ setActiveTab }) {
                   <button className="btn-outline btn-sm" style={{ flex: 1 }} onClick={() => setSelected(p)}>
                     <i className="fas fa-eye"></i> Details
                   </button>
-                  <button className="product-card-btn" style={{ flex: 1, marginTop: 0 }} onClick={() => setQuoteProduct(p)}>
+                  <button className="product-card-btn" style={{ flex: 1, marginTop: 0 }} onClick={() => handleOpenQuote(p)}>
                     <i className="fas fa-envelope"></i> Quote
                   </button>
                 </div>
@@ -172,7 +202,7 @@ export default function Marketplace({ setActiveTab }) {
             >
               <i className="fas fa-brain"></i> AI Viability Analysis
             </button>
-            <button className="btn-yellow" style={{ flex: 1 }} onClick={() => { setSelected(null); setQuoteProduct(selected); }}>
+            <button className="btn-yellow" style={{ flex: 1 }} onClick={() => { const prod = selected; setSelected(null); handleOpenQuote(prod); }}>
               Request Quote
             </button>
             <button className="btn-outline" onClick={() => setSelected(null)}>Close</button>
@@ -182,27 +212,54 @@ export default function Marketplace({ setActiveTab }) {
 
       {/* Quote Modal */}
       {quoteProduct && (
-        <Modal title={`Quote: ${quoteProduct.name}`} onClose={() => setQuoteProduct(null)}>
+        <Modal title={`Request Quote: ${quoteProduct.name}`} onClose={() => setQuoteProduct(null)}>
           <form onSubmit={handleQuote}>
-            <div className="input-group">
-              <label className="input-label">Your Name</label>
-              <input className="input" value={quoteForm.buyerName} onChange={e => setQuoteForm(f => ({ ...f, buyerName: e.target.value }))} placeholder="Full name" required />
+            <div style={{ background: 'var(--bg3)', padding: '0.75rem 1rem', borderRadius: 6, border: '1px solid var(--border)', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Recipient Supplier</div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>{quoteProduct.supplier?.companyName}</div>
             </div>
+
             <div className="input-group">
-              <label className="input-label">Your Email</label>
-              <input className="input" type="email" value={quoteForm.buyerEmail} onChange={e => setQuoteForm(f => ({ ...f, buyerEmail: e.target.value }))} placeholder="email@company.com" required />
+              <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Supplier Email (Recipient)</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--yellow)' }}><i className="fas fa-lock" style={{ marginRight: 3 }}></i>Auto-routed</span>
+              </label>
+              <input
+                className="input"
+                type="email"
+                readOnly
+                value={quoteProduct.supplier?.email || 'sales@sasuppliers.com'}
+                style={{ backgroundColor: 'var(--bg3)', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+              />
             </div>
+
             <div className="input-group">
-              <label className="input-label">Quantity</label>
-              <input className="input" type="number" min="1" value={quoteForm.quantity} onChange={e => setQuoteForm(f => ({ ...f, quantity: e.target.value }))} />
+              <label className="input-label">Your Name / Business</label>
+              <input className="input" value={quoteForm.buyerName} onChange={e => setQuoteForm(f => ({ ...f, buyerName: e.target.value }))} placeholder="Full name or company" required />
             </div>
+
             <div className="input-group">
-              <label className="input-label">Message / Specifications</label>
-              <textarea className="input" rows="3" value={quoteForm.message} onChange={e => setQuoteForm(f => ({ ...f, message: e.target.value }))} placeholder="Describe your requirements..." required style={{ resize: 'vertical' }} />
+              <label className="input-label">Your Email (Confirmation & Reply Delivery)</label>
+              <input className="input" type="email" value={quoteForm.buyerEmail} onChange={e => setQuoteForm(f => ({ ...f, buyerEmail: e.target.value }))} placeholder="buyer@company.co.za" required />
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+            <div className="input-group">
+              <label className="input-label">Target Quantity (MOQ: {quoteProduct.moq} units)</label>
+              <input className="input" type="number" min="1" value={quoteForm.quantity} onChange={e => setQuoteForm(f => ({ ...f, quantity: e.target.value }))} required />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Specifications & Requirements</label>
+              <textarea className="input" rows="3" value={quoteForm.message} onChange={e => setQuoteForm(f => ({ ...f, message: e.target.value }))} placeholder="Provide delivery address, lead time requirements, or custom branding requests..." required style={{ resize: 'vertical' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
               <button type="submit" className="btn-yellow" disabled={submitting} style={{ flex: 1 }}>
-                {submitting ? 'Sending...' : 'Send Quote Request'}
+                {submitting ? (
+                  <span><i className="fas fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Routing via turboSMTP...</span>
+                ) : (
+                  <span><i className="fas fa-paper-plane" style={{ marginRight: 6 }}></i>Send Quote Request</span>
+                )}
               </button>
               <button type="button" className="btn-outline" onClick={() => setQuoteProduct(null)}>Cancel</button>
             </div>
