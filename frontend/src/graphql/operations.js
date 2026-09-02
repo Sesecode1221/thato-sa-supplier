@@ -186,3 +186,15 @@ export const OPTIMIZE_PRODUCT_LISTING = gql`
     }
   }
 `;
+
+export const SUBMIT_CONTACT_INQUIRY = gql`
+  mutation SubmitContactInquiry($name: String!, $email: String!, $subject: String, $message: String!) {
+    submitContactInquiry(name: $name, email: $email, subject: $subject, message: $message)
+  }
+`;
+
+export const TEST_EMAIL_ALERT = gql`
+  mutation TestEmailAlert($recipient: String) {
+    testEmailAlert(recipient: $recipient)
+  }
+`;

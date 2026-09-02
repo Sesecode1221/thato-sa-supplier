@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import {
   GET_ALL_SUPPLIERS_ADMIN, GET_METRICS,
-  UPDATE_SUPPLIER_STATUS, UPDATE_SUPPLIER_PERMISSIONS, DELETE_SUPPLIER
+  UPDATE_SUPPLIER_STATUS, UPDATE_SUPPLIER_PERMISSIONS, DELETE_SUPPLIER,
+  TEST_EMAIL_ALERT
 } from '../graphql/operations';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../components/Toast';
@@ -10,6 +11,8 @@ import { useToast } from '../components/Toast';
 export default function Admin() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [testEmail, setTestEmail] = useState('aphelelesesethu719@gmail.com');
+  const [sendingTest, setSendingTest] = useState(false);
 
   const { data: supData, loading, refetch } = useQuery(GET_ALL_SUPPLIERS_ADMIN);
   const { data: metData } = useQuery(GET_METRICS);
@@ -17,6 +20,7 @@ export default function Admin() {
   const [updateStatus] = useMutation(UPDATE_SUPPLIER_STATUS);
   const [updatePerms] = useMutation(UPDATE_SUPPLIER_PERMISSIONS);
   const [deleteSupplier] = useMutation(DELETE_SUPPLIER);
+  const [triggerTestEmail] = useMutation(TEST_EMAIL_ALERT);
 
   if (!user || user.role !== 'admin') {
     return <div className="page-container"><div className="empty-state"><i className="fas fa-lock"></i><p>Admin access only.</p></div></div>;
@@ -26,6 +30,24 @@ export default function Admin() {
   const metrics = metData?.metrics;
   const active = suppliers.filter(s => s.status === 'active').length;
   const pending = suppliers.filter(s => s.status === 'pending').length;
+
+  const handleTestEmail = async (e) => {
+    e.preventDefault();
+    if (!testEmail) return;
+    setSendingTest(true);
+    try {
+      const res = await triggerTestEmail({ variables: { recipient: testEmail.trim() } });
+      if (res.data?.testEmailAlert) {
+        toast(`turboSMTP test email dispatched to ${testEmail}!`, 'success');
+      } else {
+        toast('Failed to deliver test email. Check server logs.', 'error');
+      }
+    } catch (err) {
+      toast(err.message || 'Error sending test email', 'error');
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   const handleStatus = async (id, status) => {
     try {
@@ -154,6 +176,44 @@ export default function Admin() {
           <MetricItem icon="fa-envelope" label="Quote Requests" value={metrics?.totalQuotes || 0} />
           <MetricItem icon="fa-comment" label="Messages" value={metrics?.totalMessages || 0} />
         </div>
+      </div>
+
+      {/* turboSMTP Gateway Integration Panel */}
+      <div className="card-section" style={{ border: '1px solid #4a3f10', background: 'linear-gradient(135deg, #181816 0%, #201e10 100%)' }}>
+        <div className="card-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ background: 'var(--yellow)', color: '#000', padding: '2px 8px', borderRadius: 4, fontWeight: 800, fontSize: '0.75rem' }}>ACTIVE</span>
+            ⚡ turboSMTP Automated Email Gateway
+          </span>
+          <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: 600 }}>
+            <i className="fas fa-shield-alt" style={{ marginRight: 4 }}></i> SMTP Authentication Enabled (Port 465 SSL)
+          </span>
+        </div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+          All quote requests (RFQs), buyer confirmation receipts, and contact inquiries are authenticated and routed through turboSMTP from <strong style={{ color: 'var(--yellow)' }}>aphelelesesethu719@gmail.com</strong> with consumer key <code style={{ color: 'var(--yellow)', background: '#292524', padding: '2px 6px', borderRadius: 4 }}>a0d87886...</code> and bounce-prevention headers.
+        </p>
+        <form onSubmit={handleTestEmail} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            type="email"
+            className="input"
+            style={{ maxWidth: 320, flex: 1 }}
+            value={testEmail}
+            onChange={e => setTestEmail(e.target.value)}
+            placeholder="Recipient email address"
+            required
+          />
+          <button type="submit" className="btn-yellow" disabled={sendingTest}>
+            {sendingTest ? (
+              <>
+                <i className="fas fa-spinner fa-spin" style={{ marginRight: 6 }}></i> Dispatching...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-paper-plane" style={{ marginRight: 6 }}></i> Send Test turboSMTP Alert
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );

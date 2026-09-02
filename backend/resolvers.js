@@ -7,6 +7,12 @@ const {
   getMarketViabilityRecommendationsWithGemini,
   optimizeProductListingWithGemini
 } = require('./geminiService');
+const {
+  sendSupplierQuoteAlert,
+  sendBuyerQuoteConfirmation,
+  sendContactInquiryAlert,
+  sendEmail
+} = require('./emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sasuppliers_secret';
 
@@ -222,14 +228,121 @@ const resolvers = {
     },
 
     submitQuote: async (_, { productId, buyerName, buyerEmail, message, quantity }) => {
-      const quote = await prisma.quote.create({ data: { productId, buyerName, buyerEmail, message, quantity: quantity || 1 } });
+      const parsedQty = quantity ? Number(quantity) : 1;
+      const quote = await prisma.quote.create({
+        data: {
+          productId,
+          buyerName,
+          buyerEmail,
+          message: message || '',
+          quantity: parsedQty
+        }
+      });
       await prisma.siteMetric.update({ where: { id: 'singleton' }, data: { totalQuotes: { increment: 1 } } });
+
+      // Fetch product and associated supplier for email dispatch
+      try {
+        const product = await prisma.product.findUnique({
+          where: { id: productId },
+          include: { supplier: true }
+        });
+
+        const supplierEmail = product?.supplier?.email || 'sales@sasuppliers.com';
+        const supplierName = product?.supplier?.companyName || 'Verified Supplier';
+        const productName = product?.name || 'Product';
+
+        // Dispatch turboSMTP automated alerts asynchronously
+        Promise.allSettled([
+          sendSupplierQuoteAlert({
+            supplierEmail,
+            supplierName,
+            buyerName,
+            buyerEmail,
+            productName,
+            quantity: parsedQty,
+            message,
+            quoteId: quote.id
+          }),
+          sendBuyerQuoteConfirmation({
+            buyerEmail,
+            buyerName,
+            productName,
+            quantity: parsedQty,
+            supplierName,
+            supplierEmail
+          })
+        ]).catch(err => console.error('[turboSMTP Dispatch Error]', err.message));
+      } catch (err) {
+        console.error('[Quote Email Lookup Error]', err.message);
+      }
+
       return quote;
     },
 
     sendMessage: async (_, { supplierId, message }, ctx) => {
       await prisma.siteMetric.update({ where: { id: 'singleton' }, data: { totalMessages: { increment: 1 } } });
+      try {
+        const supplier = await prisma.supplier.findUnique({ where: { id: supplierId } });
+        const senderName = ctx.user ? (ctx.user.name || ctx.user.email) : 'Prospective Buyer';
+        const senderEmail = ctx.user ? ctx.user.email : 'buyer@sasuppliers.com';
+
+        if (supplier?.email) {
+          sendEmail({
+            to: supplier.email,
+            subject: `[New Inquiry] Message from ${senderName} on SAsuppliers.com`,
+            html: `
+              <div style="font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; border-radius: 8px;">
+                <h3 style="color: #eab308; margin-top: 0;">New Inquiry Received</h3>
+                <p><strong>From:</strong> ${senderName} (<a href="mailto:${senderEmail}" style="color: #eab308;">${senderEmail}</a>)</p>
+                <div style="background: #222; padding: 15px; border-radius: 6px; margin: 15px 0;">
+                  ${message}
+                </div>
+                <a href="mailto:${senderEmail}" style="background: #eab308; color: #000; padding: 10px 18px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                  Reply to ${senderName}
+                </a>
+              </div>
+            `,
+            replyTo: senderEmail
+          }).catch(err => console.error('[Message Email Error]', err.message));
+        }
+      } catch (e) {
+        console.error('[Send message lookup error]', e.message);
+      }
       return true;
+    },
+
+    submitContactInquiry: async (_, { name, email, subject, message }) => {
+      try {
+        await sendContactInquiryAlert({ name, email, subject, message });
+        return true;
+      } catch (err) {
+        console.error('[Contact Inquiry Error]', err.message);
+        return false;
+      }
+    },
+
+    testEmailAlert: async (_, { recipient }) => {
+      const target = recipient || 'aphelelesesethu719@gmail.com';
+      try {
+        const result = await sendEmail({
+          to: target,
+          subject: '[turboSMTP Test] SAsuppliers.com Automated Email Verification',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 500px; padding: 24px; background: #111; color: #fff; border-radius: 8px; border: 1px solid #333;">
+              <h2 style="color: #eab308; margin-top: 0;">turboSMTP Test Successful</h2>
+              <p>This is a test notification confirming that <strong>turboSMTP</strong> is active and delivering automated emails on <strong>SAsuppliers.com</strong>.</p>
+              <div style="background: #1c1c1c; padding: 12px; border-radius: 4px; font-size: 13px; color: #aaa;">
+                Timestamp: ${new Date().toISOString()}<br/>
+                Host: pro.turbo-smtp.com / TurboSMTP API v2
+              </div>
+            </div>
+          `
+        });
+        return result.success !== false;
+      } catch (err) {
+        console.error('[Test Email Error]', err.message);
+        return false;
+      }
     },
 
     updateSupplierStatus: async (_, { id, status }, ctx) => {

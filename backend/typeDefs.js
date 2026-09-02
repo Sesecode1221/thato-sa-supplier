@@ -133,6 +133,8 @@ const typeDefs = gql`
     deleteProduct(id: String!): Boolean!
     submitQuote(productId: String!, buyerName: String!, buyerEmail: String!, message: String!, quantity: Int): Quote!
     sendMessage(supplierId: String!, message: String!): Boolean!
+    submitContactInquiry(name: String!, email: String!, subject: String, message: String!): Boolean!
+    testEmailAlert(recipient: String): Boolean!
     updateSupplierStatus(id: String!, status: String!): Supplier!
     updateSupplierPermissions(id: String!, isPremium: Boolean, maxProducts: Int): Supplier!
     deleteSupplier(id: String!): Boolean!

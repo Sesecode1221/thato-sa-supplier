@@ -1,4 +1,7 @@
 import React from 'react';
+import { useMutation } from '@apollo/client';
+import { SUBMIT_CONTACT_INQUIRY } from '../graphql/operations';
+import { useToast } from '../components/Toast';
 
 export function HowItWorks({ setActiveTab, onRegister }) {
   const steps = [
@@ -63,9 +66,32 @@ export function About({ setActiveTab }) {
 }
 
 export function Contact() {
+  const { toast } = useToast();
   const [form, setForm] = React.useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = React.useState(false);
-  const handle = e => { e.preventDefault(); setSent(true); };
+  const [submitInquiry, { loading }] = useMutation(SUBMIT_CONTACT_INQUIRY);
+
+  const handle = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      toast('Please complete all required fields.', 'error');
+      return;
+    }
+    try {
+      await submitInquiry({
+        variables: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          subject: form.subject.trim() || 'General Inquiry',
+          message: form.message.trim(),
+        }
+      });
+      setSent(true);
+      toast('Message dispatched via turboSMTP alert!', 'success');
+    } catch (err) {
+      toast(err.message || 'Failed to send message', 'error');
+    }
+  };
 
   return (
     <div className="page-container">
@@ -77,6 +103,7 @@ export function Contact() {
             <i className="fas fa-check-circle" style={{ fontSize: '2.5rem', color: '#22c55e', marginBottom: '1rem', display: 'block' }}></i>
             <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>Message sent!</div>
             <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>We'll get back to you within 1 business day.</div>
+            <button className="btn-outline" style={{ marginTop: '1.5rem' }} onClick={() => { setSent(false); setForm({ name: '', email: '', subject: '', message: '' }); }}>Send Another Message</button>
           </div>
         ) : (
           <form onSubmit={handle}>
@@ -90,7 +117,9 @@ export function Contact() {
               <label className="input-label">Message</label>
               <textarea className="input" rows="5" value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="How can we help?" required style={{ resize: 'vertical' }} />
             </div>
-            <button type="submit" className="btn-yellow" style={{ width: '100%' }}>Send Message</button>
+            <button type="submit" className="btn-yellow" style={{ width: '100%' }} disabled={loading}>
+              {loading ? 'Sending Message...' : 'Send Message'}
+            </button>
             <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
               <div><i className="fas fa-phone" style={{ color: 'var(--yellow)', marginRight: 8 }}></i>071 000 0000</div>
               <div><i className="fas fa-envelope" style={{ color: 'var(--yellow)', marginRight: 8 }}></i>info@sasuppliers.com</div>
