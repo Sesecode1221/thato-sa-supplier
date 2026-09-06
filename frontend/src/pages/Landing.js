@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_PRODUCTS } from '../graphql/operations';
+import LogiCorePartnerCard from '../components/LogiCorePartnerCard';
+import { useToast } from '../components/Toast';
 
 export default function Landing({ setActiveTab, onRegister }) {
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const { data } = useQuery(GET_PRODUCTS, { variables: { search: '' } });
   const products = (data?.products || []).slice(0, 5);
+
+  const handlePartnerInterest = () => {
+    toast('Thank you for your interest! LogiCore logistics team has been notified.', 'success');
+  };
 
   return (
     <>
@@ -32,11 +39,7 @@ export default function Landing({ setActiveTab, onRegister }) {
           </div>
         </div>
         <div className="hero-image">
-          <img
-            src="https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&q=80"
-            alt="Industrial Bulk Products"
-            onError={e => { e.target.src = 'https://picsum.photos/600/400?grayscale'; }}
-          />
+          <LogiCorePartnerCard onPartnerClick={handlePartnerInterest} />
         </div>
       </div>
 
