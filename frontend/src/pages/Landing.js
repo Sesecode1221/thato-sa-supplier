@@ -160,9 +160,9 @@ export default function Landing({ setActiveTab, onRegister }) {
         <div className="section-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>📦 SUPPLIER SUBSCRIPTION PLANS</div>
         <div className="packages-grid">
           {[
-            { icon: '🌱', name: 'Starter', price: 'R49', period: '/month', badge: null, features: ['Up to 10 product listings','Basic profile & contact','Quote requests via email', 'Gemini AI product viability check'], no: ['Premium badge'], btn: 'Get Started', cls: '' },
-            { icon: '📈', name: 'Pro', price: 'R99', period: '/month', badge: 'Most Popular', features: ['Up to 50 product listings','Verified badge & higher ranking','Direct messaging + quote dashboard','AI Competitiveness Roadmap','Analytics: views & quote volume'], no: [], btn: 'Start 14-day trial', cls: 'featured' },
-            { icon: '👑', name: 'Enterprise', price: 'R249', period: '/month', badge: null, features: ['Unlimited products','Priority support & featured placement','AI Market Intelligence & Margin Predictor','Logistics API integration ready'], no: [], btn: 'Contact Sales', cls: '' },
+            { icon: '🌱', name: 'Starter / Basic', price: 'R99', period: '/month', badge: null, features: ['Up to 10 product listings','Basic profile & contact','Quote requests via email', 'Gemini AI product viability check'], no: ['Premium badge'], btn: 'Get Started', cls: '' },
+            { icon: '📈', name: 'Pro / Premium', price: 'R249', period: '/month', badge: 'Most Popular', features: ['Up to 50 product listings','Verified badge & higher ranking','Direct messaging + quote dashboard','AI Competitiveness Roadmap','Analytics: views & quote volume'], no: [], btn: 'Start 14-day trial', cls: 'featured' },
+            { icon: '👑', name: 'Enterprise', price: 'R399', period: '/month', badge: null, features: ['Unlimited products','Priority support & featured placement','AI Market Intelligence & Margin Predictor','Logistics API integration ready'], no: [], btn: 'Contact Sales', cls: '' },
           ].map(pkg => (
             <div className={`package-card ${pkg.cls}`} key={pkg.name}>
               {pkg.badge && <div className="package-badge">{pkg.badge}</div>}
