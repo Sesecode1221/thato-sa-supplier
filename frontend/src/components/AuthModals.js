@@ -37,6 +37,38 @@ export function LoginModal({ onClose, onSwitchRegister }) {
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
+
+      <div style={{ marginTop: '1.25rem', padding: '0.85rem', background: 'var(--bg3)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Demo Accounts (Click to Fill)
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <button
+            type="button"
+            onClick={() => { setEmail('thatohatsimothudi@gmail.com'); setPassword('admin123'); }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem 0.6rem', color: 'var(--text)', fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span>👑 <strong>Admin:</strong> thatohatsimothudi@gmail.com</span>
+            <span style={{ color: 'var(--yellow)', fontSize: '0.72rem', fontWeight: 600 }}>Use</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setEmail('aphelelesesethu719@gmail.com'); setPassword('buyer123'); }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem 0.6rem', color: 'var(--text)', fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span>🛒 <strong>Buyer:</strong> aphelelesesethu719@gmail.com</span>
+            <span style={{ color: 'var(--yellow)', fontSize: '0.72rem', fontWeight: 600 }}>Use</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setEmail('sesethu@greenbdgafrica.com'); setPassword('supplier123'); }}
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem 0.6rem', color: 'var(--text)', fontSize: '0.78rem', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span>📦 <strong>Supplier:</strong> sesethu@greenbdgafrica.com</span>
+            <span style={{ color: 'var(--yellow)', fontSize: '0.72rem', fontWeight: 600 }}>Use</span>
+          </button>
+        </div>
+      </div>
       
       <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
         No account?{' '}

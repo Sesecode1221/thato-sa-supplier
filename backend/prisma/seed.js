@@ -8,16 +8,16 @@ async function main() {
 
   const adminPass = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@sasuppliers.com' },
+    where: { email: 'thatohatsimothudi@gmail.com' },
     update: {},
-    create: { email: 'admin@sasuppliers.com', password: adminPass, name: 'System Admin', role: 'admin' }
+    create: { email: 'thatohatsimothudi@gmail.com', password: adminPass, name: 'System Admin', role: 'admin' }
   });
 
   const sup1Pass = await bcrypt.hash('supplier123', 10);
   const sup1User = await prisma.user.upsert({
-    where: { email: 'trade@urbanapparel.co.za' },
+    where: { email: 'sesethu@greenbdgafrica.com' },
     update: {},
-    create: { email: 'trade@urbanapparel.co.za', password: sup1Pass, name: 'Urban Manager', role: 'supplier', company: 'Urban Apparel SA' }
+    create: { email: 'sesethu@greenbdgafrica.com', password: sup1Pass, name: 'Urban Manager', role: 'supplier', company: 'Urban Apparel SA' }
   });
 
   const sup2Pass = await bcrypt.hash('supplier123', 10);
@@ -50,13 +50,13 @@ async function main() {
 
   const buyerPass = await bcrypt.hash('buyer123', 10);
   await prisma.user.upsert({
-    where: { email: 'buyer@example.com' },
+    where: { email: 'aphelelesesethu719@gmail.com' },
     update: {},
-    create: { email: 'buyer@example.com', password: buyerPass, name: 'John Buyer', role: 'buyer', company: 'Retail Holdings' }
+    create: { email: 'aphelelesesethu719@gmail.com', password: buyerPass, name: 'John Buyer', role: 'buyer', company: 'Retail Holdings' }
   });
 
   const suppliers = [
-    { userId: sup1User.id, companyName: 'Urban Apparel SA', location: 'Johannesburg, Gauteng', phone: '+27 11 222 3344', email: 'trade@urbanapparel.co.za', description: 'Leading supplier of bulk textiles & corporate wear.', logo: 'https://picsum.photos/id/82/100/100', isPremium: true, status: 'active' },
+    { userId: sup1User.id, companyName: 'Urban Apparel SA', location: 'Johannesburg, Gauteng', phone: '+27 11 222 3344', email: 'sesethu@greenbdgafrica.com', description: 'Leading supplier of bulk textiles & corporate wear.', logo: 'https://picsum.photos/id/82/100/100', isPremium: true, status: 'active' },
     { userId: sup2User.id, companyName: 'PackRight Solutions', location: 'Cape Town, Western Cape', phone: '+27 21 555 6677', email: 'hello@packright.co.za', description: 'Eco-friendly industrial packaging and storage.', logo: 'https://picsum.photos/id/12/100/100', isPremium: false, status: 'active' },
     { userId: sup3User.id, companyName: 'Safety First Supplies', location: 'Durban, KZN', phone: '+27 31 765 4321', email: 'orders@safetyfirst.co.za', description: 'Premium PPE: helmets, vests, gloves.', logo: 'https://picsum.photos/id/20/100/100', isPremium: true, status: 'active' },
     { userId: sup4User.id, companyName: 'Bulk Storage Africa', location: 'Pretoria, Gauteng', phone: '+27 12 345 6789', email: 'info@bulkstorage.co.za', description: 'Heavy-duty shelving and industrial bins.', logo: 'https://picsum.photos/id/42/100/100', isPremium: false, status: 'pending' },

@@ -21,7 +21,7 @@ function seedInitialData() {
 
   const adminUser = {
     id: 'user_admin',
-    email: 'admin@sasuppliers.com',
+    email: 'thatohatsimothudi@gmail.com',
     password: adminPass,
     name: 'System Admin',
     role: 'admin',
@@ -31,7 +31,7 @@ function seedInitialData() {
 
   const sup1User = {
     id: 'user_sup1',
-    email: 'trade@urbanapparel.co.za',
+    email: 'sesethu@greenbdgafrica.com',
     password: supplierPass,
     name: 'Urban Manager',
     role: 'supplier',
@@ -81,7 +81,7 @@ function seedInitialData() {
 
   const buyerUser = {
     id: 'user_buyer1',
-    email: 'buyer@example.com',
+    email: 'aphelelesesethu719@gmail.com',
     password: buyerPass,
     name: 'John Buyer',
     role: 'buyer',
@@ -97,7 +97,7 @@ function seedInitialData() {
     companyName: 'Urban Apparel SA',
     location: 'Johannesburg, Gauteng',
     phone: '+27 11 222 3344',
-    email: 'trade@urbanapparel.co.za',
+    email: 'sesethu@greenbdgafrica.com',
     description: 'Leading supplier of bulk textiles & corporate wear.',
     logo: 'https://picsum.photos/id/82/100/100',
     isPremium: true,

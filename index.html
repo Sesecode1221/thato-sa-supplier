@@ -137,9 +137,9 @@
         appData.metrics.totalMessages = 57;
 
         users = [
-            { id: "user_admin", email: "admin@sasuppliers.com", password: "admin123", role: "admin", name: "System Admin", company: "" },
-            { id: "user_sup1", email: "supplier@urbanapparel.co.za", password: "supplier123", role: "supplier", supplierId: "sup1", name: "Urban Manager", company: "Urban Apparel SA" },
-            { id: "user_buyer1", email: "buyer@example.com", password: "buyer123", role: "buyer", name: "John Buyer", company: "Retail Holdings" }
+            { id: "user_admin", email: "thatohatsimothudi@gmail.com", password: "admin123", role: "admin", name: "System Admin", company: "" },
+            { id: "user_sup1", email: "sesethu@greenbdgafrica.com", password: "supplier123", role: "supplier", supplierId: "sup1", name: "Urban Manager", company: "Urban Apparel SA" },
+            { id: "user_buyer1", email: "aphelelesesethu719@gmail.com", password: "buyer123", role: "buyer", name: "John Buyer", company: "Retail Holdings" }
         ];
         saveToLocal();
     }
@@ -323,7 +323,7 @@
     }
 
     function showLoginModal() {
-        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-2xl font-bold mb-4">Login</h3><form id="loginForm"><input id="loginEmail" type="email" placeholder="Email" class="border p-2 w-full mb-3 rounded" required><input id="loginPassword" type="password" placeholder="Password" class="border p-2 w-full mb-3 rounded" required><button type="submit" class="bg-blue-700 text-white w-full py-2 rounded-xl font-semibold">Sign In</button><p class="text-center text-sm mt-3">Demo: admin@sasuppliers.com / admin123<br>supplier@urbanapparel.co.za / supplier123<br>buyer@example.com / buyer123</p></form><button id="closeLoginBtn" class="absolute top-2 right-2 text-gray-500"><i class="fas fa-times"></i></button></div>`;
+        modalContainer.innerHTML = `<div class="bg-white rounded-2xl max-w-md w-full p-6"><h3 class="text-2xl font-bold mb-4">Login</h3><form id="loginForm"><input id="loginEmail" type="email" placeholder="Email" class="border p-2 w-full mb-3 rounded" required><input id="loginPassword" type="password" placeholder="Password" class="border p-2 w-full mb-3 rounded" required><button type="submit" class="bg-blue-700 text-white w-full py-2 rounded-xl font-semibold">Sign In</button><p class="text-center text-sm mt-3">Demo: thatohatsimothudi@gmail.com / admin123<br>sesethu@greenbdgafrica.com / supplier123<br>aphelelesesethu719@gmail.com / buyer123</p></form><button id="closeLoginBtn" class="absolute top-2 right-2 text-gray-500"><i class="fas fa-times"></i></button></div>`;
         modalContainer.classList.remove('hidden');
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
