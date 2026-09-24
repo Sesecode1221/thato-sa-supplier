@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import {
   GET_ALL_SUPPLIERS_ADMIN, GET_METRICS,
   UPDATE_SUPPLIER_STATUS, UPDATE_SUPPLIER_PERMISSIONS, DELETE_SUPPLIER,
-  TEST_EMAIL_ALERT
+  TEST_EMAIL_ALERT, SIMULATE_PROVIDER_WEBHOOK_OUTCOME
 } from '../graphql/operations';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../components/Toast';
@@ -21,6 +21,7 @@ export default function Admin() {
   const [updatePerms] = useMutation(UPDATE_SUPPLIER_PERMISSIONS);
   const [deleteSupplier] = useMutation(DELETE_SUPPLIER);
   const [triggerTestEmail] = useMutation(TEST_EMAIL_ALERT);
+  const [simulateWebhook] = useMutation(SIMULATE_PROVIDER_WEBHOOK_OUTCOME);
 
   if (!user || user.role !== 'admin') {
     return <div className="page-container"><div className="empty-state"><i className="fas fa-lock"></i><p>Admin access only.</p></div></div>;
@@ -114,7 +115,8 @@ export default function Admin() {
                   <th>Company</th>
                   <th>Location</th>
                   <th>Products</th>
-                  <th>Status</th>
+                  <th>External Verification</th>
+                  <th>Listing Status</th>
                   <th>Premium</th>
                   <th>Actions</th>
                 </tr>
@@ -134,6 +136,57 @@ export default function Admin() {
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{s.location}</td>
                     <td style={{ textAlign: 'center' }}>{s.productCount}</td>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div>
+                          {s.verificationStatus === 'VERIFIED' ? (
+                            <span style={{ background: 'rgba(34,197,94,0.18)', color: '#22c55e', border: '1px solid #22c55e', fontSize: '0.7rem', fontWeight: 700, padding: '2px 6px', borderRadius: 3 }}>
+                              ✓ VERIFIED
+                            </span>
+                          ) : s.verificationStatus === 'VERIFICATION_PENDING' ? (
+                            <span style={{ background: 'rgba(234,179,8,0.18)', color: 'var(--yellow)', border: '1px solid var(--yellow)', fontSize: '0.7rem', fontWeight: 700, padding: '2px 6px', borderRadius: 3 }}>
+                              ⏳ PENDING
+                            </span>
+                          ) : (
+                            <span style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '2px 6px', borderRadius: 3 }}>
+                              {s.verificationStatus || 'UNVERIFIED'}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                          {s.verificationProvider ? s.verificationProvider.split('/')[0].trim() : 'No Provider'}
+                        </div>
+                        {/* Admin Webhook Simulator */}
+                        <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
+                          <button
+                            title="Simulate external webhook VERIFIED status"
+                            style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: 'none', borderRadius: 2, fontSize: '0.65rem', padding: '1px 5px', cursor: 'pointer' }}
+                            onClick={async () => {
+                              try {
+                                await simulateWebhook({ variables: { supplierId: s.id, providerId: 'prov_pbverify', outcomeStatus: 'VERIFIED' } });
+                                toast(`Simulated VERIFIED webhook for ${s.companyName}`);
+                                refetch();
+                              } catch (err) { toast(err.message, 'error'); }
+                            }}
+                          >
+                            Pass
+                          </button>
+                          <button
+                            title="Simulate external webhook FAILED status"
+                            style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', borderRadius: 2, fontSize: '0.65rem', padding: '1px 5px', cursor: 'pointer' }}
+                            onClick={async () => {
+                              try {
+                                await simulateWebhook({ variables: { supplierId: s.id, providerId: 'prov_pbverify', outcomeStatus: 'VERIFICATION_FAILED' } });
+                                toast(`Simulated FAILED webhook for ${s.companyName}`);
+                                refetch();
+                              } catch (err) { toast(err.message, 'error'); }
+                            }}
+                          >
+                            Fail
+                          </button>
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       <select
                         className="input" style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.78rem' }}

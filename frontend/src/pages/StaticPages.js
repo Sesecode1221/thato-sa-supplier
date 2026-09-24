@@ -5,10 +5,10 @@ import { useToast } from '../components/Toast';
 
 export function HowItWorks({ setActiveTab, onRegister }) {
   const steps = [
-    { num: '01', icon: 'fa-user-plus', title: 'Register as a Supplier', desc: 'Create your account and list your company profile on SAsuppliers.com. Verification takes 24–48 hours.' },
-    { num: '02', icon: 'fa-box-open', title: 'List Your Products', desc: 'Upload your bulk products with pricing, MOQs, and images. Buyers across SA can instantly discover them.' },
-    { num: '03', icon: 'fa-envelope-open-text', title: 'Receive Quote Requests', desc: 'Buyers submit instant quote requests. You respond directly with pricing and lead times.' },
-    { num: '04', icon: 'fa-handshake', title: 'Close the Deal', desc: 'Connect directly with buyers, negotiate terms, and fulfil orders your way.' },
+    { num: '01', icon: 'fa-user-plus', title: '1. Register Your Account', desc: 'Create your supplier login and submit your company profile on SAsuppliers.com.' },
+    { num: '02', icon: 'fa-shield-alt', title: '2. Complete Verification', desc: 'Connect to accredited verification partners (PBVerify, SearchWorks, TransUnion) to confirm CIPC registration and directorship with zero document risk.' },
+    { num: '03', icon: 'fa-credit-card', title: '3. Activate Subscription', desc: 'Choose your platform access plan (Starter, Pro, Enterprise) and checkout securely through our South African payment gateway.' },
+    { num: '04', icon: 'fa-boxes', title: '4. Publish & Receive RFQs', desc: 'Upload bulk intermediate goods, optimize with Gemini AI, and receive qualified quote inquiries directly to your dashboard.' },
   ];
   return (
     <div className="page-container">

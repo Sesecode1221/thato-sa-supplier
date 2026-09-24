@@ -78,10 +78,10 @@ export function LoginModal({ onClose, onSwitchRegister }) {
   );
 }
 
-export function RegisterModal({ onClose, onSwitchLogin }) {
+export function RegisterModal({ onClose, onSwitchLogin, onSupplierRegistered, initialRole = 'buyer' }) {
   const { toast } = useToast();
   const { login } = useAuth();
-  const [role, setRole] = useState('buyer');
+  const [role, setRole] = useState(initialRole);
   const [form, setForm] = useState({ name: '', email: '', password: '', company: '', location: '', phone: '', description: '' });
   const [doRegister, { loading }] = useMutation(REGISTER);
 
@@ -93,8 +93,11 @@ export function RegisterModal({ onClose, onSwitchLogin }) {
     try {
       const { data } = await doRegister({ variables: { ...form, role } });
       login(data.register.token, data.register.user);
-      toast('Account created!');
+      toast('Account created! Welcome to SAsuppliers.com');
       onClose();
+      if (role === 'supplier' && onSupplierRegistered) {
+        onSupplierRegistered(data.register.user);
+      }
     } catch (err) { toast(err.message, 'error'); }
   };
 

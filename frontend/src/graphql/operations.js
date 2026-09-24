@@ -4,7 +4,18 @@ export const LOGIN = gql`
   mutation Login($email: String!, $password: String!) {
     login(email: $email, password: $password) {
       token
-      user { id email name role company supplier { id companyName status } }
+      user {
+        id email name role company
+        supplier {
+          id companyName location phone email description logo isPremium status
+          verificationStatus verificationProvider verificationReference verificationDate expiryDate verificationScope verificationBadgeDefinition
+          subscriptionPlan subscriptionStatus subscriptionRenewsAt
+          hasApprovedGateway preferredGatewayId
+          paymentGateway {
+            gatewayId gatewayName merchantId businessName status approvedAt proofReference payoutBankName payoutAccountLast4 settlementCurrency portalUrl verifiedBadge documentNote
+          }
+        }
+      }
     }
   }
 `;
@@ -13,14 +24,36 @@ export const REGISTER = gql`
   mutation Register($email: String!, $password: String!, $name: String!, $role: String!, $company: String, $location: String, $phone: String, $description: String) {
     register(email: $email, password: $password, name: $name, role: $role, company: $company, location: $location, phone: $phone, description: $description) {
       token
-      user { id email name role company supplier { id companyName status } }
+      user {
+        id email name role company
+        supplier {
+          id companyName location phone email description logo isPremium status
+          verificationStatus verificationProvider verificationReference verificationDate expiryDate verificationScope verificationBadgeDefinition
+          subscriptionPlan subscriptionStatus subscriptionRenewsAt
+          hasApprovedGateway preferredGatewayId
+          paymentGateway {
+            gatewayId gatewayName merchantId businessName status approvedAt proofReference payoutBankName payoutAccountLast4 settlementCurrency portalUrl verifiedBadge documentNote
+          }
+        }
+      }
     }
   }
 `;
 
 export const ME = gql`
   query Me {
-    me { id email name role company supplier { id companyName location phone email description logo isPremium status } }
+    me {
+      id email name role company
+      supplier {
+        id companyName location phone email description logo isPremium status
+        verificationStatus verificationProvider verificationReference verificationDate expiryDate verificationScope verificationBadgeDefinition
+        subscriptionPlan subscriptionStatus subscriptionRenewsAt
+        hasApprovedGateway preferredGatewayId
+        paymentGateway {
+          gatewayId gatewayName merchantId businessName status approvedAt proofReference payoutBankName payoutAccountLast4 settlementCurrency portalUrl verifiedBadge documentNote
+        }
+      }
+    }
   }
 `;
 
@@ -28,7 +61,14 @@ export const GET_PRODUCTS = gql`
   query GetProducts($search: String, $category: String) {
     products(search: $search, category: $category) {
       id name category description priceRange moq image
-      supplier { id companyName location email isPremium status }
+      supplier {
+        id companyName location email isPremium status
+        verificationStatus verificationProvider verificationReference expiryDate verificationBadgeDefinition
+        hasApprovedGateway preferredGatewayId
+        paymentGateway {
+          gatewayId gatewayName merchantId status verifiedBadge
+        }
+      }
     }
   }
 `;
@@ -37,6 +77,12 @@ export const GET_SUPPLIERS = gql`
   query GetSuppliers($status: String) {
     suppliers(status: $status) {
       id companyName location phone email description logo isPremium status productCount
+      verificationStatus verificationProvider verificationReference verificationDate expiryDate verificationScope verificationBadgeDefinition
+      subscriptionPlan subscriptionStatus
+      hasApprovedGateway preferredGatewayId
+      paymentGateway {
+        gatewayId gatewayName merchantId businessName status verifiedBadge
+      }
     }
   }
 `;
@@ -53,6 +99,12 @@ export const GET_ALL_SUPPLIERS_ADMIN = gql`
   query GetAllSuppliers {
     suppliers {
       id companyName location phone email description logo isPremium status productCount
+      verificationStatus verificationProvider verificationReference verificationDate expiryDate verificationScope verificationBadgeDefinition
+      subscriptionPlan subscriptionStatus
+      hasApprovedGateway preferredGatewayId
+      paymentGateway {
+        gatewayId gatewayName merchantId businessName status verifiedBadge
+      }
     }
   }
 `;
@@ -110,7 +162,12 @@ export const DELETE_SUPPLIER = gql`
 export const UPDATE_PROFILE = gql`
   mutation UpdateProfile($name: String, $company: String, $phone: String, $location: String, $description: String, $email: String) {
     updateProfile(name: $name, company: $company, phone: $phone, location: $location, description: $description, email: $email) {
-      id email name role company supplier { id companyName location phone email description }
+      id email name role company
+      supplier {
+        id companyName location phone email description logo isPremium status
+        verificationStatus verificationProvider verificationReference verificationDate expiryDate verificationScope verificationBadgeDefinition
+        subscriptionPlan subscriptionStatus subscriptionRenewsAt
+      }
     }
   }
 `;
@@ -260,3 +317,201 @@ export const UPDATE_QUOTE_STATUS = gql`
     }
   }
 `;
+
+export const GET_EXTERNAL_VERIFICATION_PROVIDERS = gql`
+  query GetExternalVerificationProviders {
+    externalVerificationProviders {
+      id
+      name
+      tagline
+      category
+      supportedChecks
+      standardFeeZAR
+      turnaround
+      complianceCertifications
+      statusEndpoint
+      isRecommended
+      redirectUrl
+    }
+  }
+`;
+
+export const GET_SUPPLIER_VERIFICATION_RECORDS = gql`
+  query GetSupplierVerificationRecords($supplierId: String) {
+    supplierVerificationRecords(supplierId: $supplierId) {
+      id
+      supplierId
+      providerId
+      providerName
+      status
+      referenceNumber
+      initiatedAt
+      completedAt
+      expiresAt
+      scope
+      paymentAmountZAR
+      paymentGateway
+      paymentStatus
+      auditLogSummary
+    }
+  }
+`;
+
+export const INITIATE_EXTERNAL_VERIFICATION = gql`
+  mutation InitiateExternalVerification($providerId: String!, $acknowledgedTerms: Boolean!) {
+    initiateExternalVerification(providerId: $providerId, acknowledgedTerms: $acknowledgedTerms) {
+      sessionUrl
+      referenceNumber
+      providerName
+      providerId
+      gatewayPlaceholder
+      instructions
+      termsSummary
+    }
+  }
+`;
+
+export const SIMULATE_PROVIDER_WEBHOOK_OUTCOME = gql`
+  mutation SimulateProviderWebhookOutcome($supplierId: String!, $providerId: String!, $outcomeStatus: String!, $referenceNumber: String, $scope: String) {
+    simulateProviderWebhookOutcome(supplierId: $supplierId, providerId: $providerId, outcomeStatus: $outcomeStatus, referenceNumber: $referenceNumber, scope: $scope) {
+      id
+      companyName
+      verificationStatus
+      verificationProvider
+      verificationReference
+      verificationDate
+      expiryDate
+      verificationScope
+      verificationBadgeDefinition
+      isPremium
+      status
+    }
+  }
+`;
+
+export const CREATE_SUPPLIER_GATEWAY_CHECKOUT = gql`
+  mutation CreateSupplierGatewayCheckout($planName: String!, $billingCycle: String) {
+    createSupplierGatewayCheckout(planName: $planName, billingCycle: $billingCycle) {
+      gatewayName
+      planName
+      amountZAR
+      checkoutUrl
+      paymentReference
+      isPlaceholder
+      notice
+    }
+  }
+`;
+
+export const CONFIRM_SUPPLIER_SUBSCRIPTION = gql`
+  mutation ConfirmSupplierSubscription($planName: String!, $paymentReference: String!) {
+    confirmSupplierSubscription(planName: $planName, paymentReference: $paymentReference) {
+      id
+      companyName
+      subscriptionPlan
+      subscriptionStatus
+      subscriptionRenewsAt
+      isPremium
+    }
+  }
+`;
+
+export const GET_SUPPORTED_PAYMENT_GATEWAYS = gql`
+  query GetSupportedPaymentGateways {
+    supportedPaymentGateways {
+      id
+      name
+      tagline
+      setupUrl
+      portalUrl
+      logo
+      color
+      supportedPaymentMethods
+      settlementSpeed
+      requirements
+      isPopular
+      testMerchantExample
+      description
+    }
+  }
+`;
+
+export const INITIATE_GATEWAY_SETUP_REDIRECT = gql`
+  mutation InitiateGatewaySetupRedirect($gatewayId: String!, $returnUrl: String) {
+    initiateGatewaySetupRedirect(gatewayId: $gatewayId, returnUrl: $returnUrl) {
+      gatewayId
+      gatewayName
+      redirectUrl
+      setupReference
+      callbackUrl
+      instructions
+    }
+  }
+`;
+
+export const SUBMIT_PAYMENT_GATEWAY_PROOF = gql`
+  mutation SubmitPaymentGatewayProof(
+    $gatewayId: String!
+    $merchantId: String!
+    $businessName: String!
+    $proofReference: String!
+    $payoutBankName: String
+    $payoutAccountLast4: String
+    $proofDocumentNote: String
+    $simulateAutoApproval: Boolean
+  ) {
+    submitPaymentGatewayProof(
+      gatewayId: $gatewayId
+      merchantId: $merchantId
+      businessName: $businessName
+      proofReference: $proofReference
+      payoutBankName: $payoutBankName
+      payoutAccountLast4: $payoutAccountLast4
+      proofDocumentNote: $proofDocumentNote
+      simulateAutoApproval: $simulateAutoApproval
+    ) {
+      id
+      companyName
+      verificationStatus
+      verificationProvider
+      verificationReference
+      verificationDate
+      expiryDate
+      verificationScope
+      verificationBadgeDefinition
+      isPremium
+      status
+      hasApprovedGateway
+      preferredGatewayId
+      paymentGateway {
+        gatewayId
+        gatewayName
+        merchantId
+        businessName
+        status
+        approvedAt
+        proofReference
+        payoutBankName
+        payoutAccountLast4
+        settlementCurrency
+        portalUrl
+        verifiedBadge
+        documentNote
+      }
+    }
+  }
+`;
+
+export const DISCONNECT_PAYMENT_GATEWAY = gql`
+  mutation DisconnectPaymentGateway($supplierId: String) {
+    disconnectPaymentGateway(supplierId: $supplierId) {
+      id
+      hasApprovedGateway
+      preferredGatewayId
+      paymentGateway {
+        gatewayId
+      }
+    }
+  }
+`;
+

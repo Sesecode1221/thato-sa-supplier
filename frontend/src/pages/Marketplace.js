@@ -156,7 +156,28 @@ export default function Marketplace({ setActiveTab }) {
               <div className="product-card-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.4rem' }}>
                   <div className="product-card-name">{p.name}</div>
-                  {p.supplier?.isPremium && <span className="badge badge-active" style={{ fontSize: '0.6rem', whiteSpace: 'nowrap' }}>✓ Verified</span>}
+                  {p.supplier?.paymentGateway?.status === 'APPROVED' ? (
+                    <span
+                      className="badge badge-active"
+                      style={{ fontSize: '0.62rem', whiteSpace: 'nowrap', cursor: 'help' }}
+                      title={`Verified Merchant Account: ${p.supplier.paymentGateway.gatewayName} (ID: ${p.supplier.paymentGateway.merchantId})`}
+                    >
+                      <i className="fas fa-check-circle" style={{ marginRight: 3 }}></i>
+                      {p.supplier.paymentGateway.gatewayName.split(' ')[0]} Verified
+                    </span>
+                  ) : p.supplier?.verificationStatus === 'VERIFIED' ? (
+                    <span
+                      className="badge badge-active"
+                      style={{ fontSize: '0.6rem', whiteSpace: 'nowrap', cursor: 'help' }}
+                      title={p.supplier?.verificationBadgeDefinition || 'Verified by accredited external verification provider'}
+                    >
+                      ✓ Verified ({p.supplier?.verificationProvider ? p.supplier.verificationProvider.split('/')[0].trim() : 'External'})
+                    </span>
+                  ) : p.supplier?.isPremium ? (
+                    <span className="badge badge-pending" style={{ fontSize: '0.6rem', whiteSpace: 'nowrap' }}>
+                      ⭐ Premium
+                    </span>
+                  ) : null}
                 </div>
                 <div className="product-card-meta">
                   <span><i className="fas fa-building" style={{ marginRight: 4, opacity: 0.5 }}></i>{p.supplier?.companyName}</span>
@@ -189,6 +210,32 @@ export default function Marketplace({ setActiveTab }) {
             <div><span style={{ color: 'var(--text-dim)' }}>MOQ</span><br /><strong>{selected.moq} units</strong></div>
             <div><span style={{ color: 'var(--text-dim)' }}>Category</span><br /><strong>{selected.category}</strong></div>
             <div><span style={{ color: 'var(--text-dim)' }}>Supplier</span><br /><strong>{selected.supplier?.companyName}</strong></div>
+          </div>
+
+          {/* External Verification & Gateway Information Box & Disclaimer */}
+          <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, padding: '0.85rem 1rem', marginBottom: '1.25rem', fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+              <span style={{ fontWeight: 700, color: '#fff' }}>
+                <i className="fas fa-shield-alt" style={{ color: (selected.supplier?.verificationStatus === 'VERIFIED' || selected.supplier?.paymentGateway?.status === 'APPROVED') ? '#22c55e' : 'var(--yellow)', marginRight: 5 }}></i>
+                Supplier Verification Status:
+              </span>
+              <span style={{ fontWeight: 700, color: (selected.supplier?.verificationStatus === 'VERIFIED' || selected.supplier?.paymentGateway?.status === 'APPROVED') ? '#22c55e' : 'var(--yellow)' }}>
+                {selected.supplier?.paymentGateway?.status === 'APPROVED' ? `✓ ${selected.supplier.paymentGateway.gatewayName} Verified Merchant` : (selected.supplier?.verificationStatus === 'VERIFIED' ? 'Verified Enterprise' : selected.supplier?.verificationStatus || 'Unverified')}
+              </span>
+            </div>
+            {selected.supplier?.paymentGateway?.merchantId && (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                Payment Gateway Merchant ID: <strong style={{ color: 'var(--yellow)' }}>{selected.supplier.paymentGateway.merchantId}</strong>
+              </div>
+            )}
+            {selected.supplier?.verificationProvider && !selected.supplier?.paymentGateway && (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                Verified via accredited partner: <strong>{selected.supplier.verificationProvider}</strong>
+              </div>
+            )}
+            <div style={{ color: 'var(--text-dim)', fontSize: '0.72rem', lineHeight: 1.4, borderTop: '1px solid var(--border-light)', paddingTop: '0.35rem', marginTop: '0.35rem', fontStyle: 'italic' }}>
+              *Verification Disclaimer: The Verified badge reflects verification conducted directly by external payment gateways or accredited providers. SAsuppliers.com displays status tokens and does not act as a credit bureau or guarantor.
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button

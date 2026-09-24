@@ -157,7 +157,15 @@ export default function Landing({ setActiveTab, onRegister }) {
 
       {/* ── SUBSCRIPTION PLANS ── */}
       <div className="section">
-        <div className="section-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>📦 SUPPLIER SUBSCRIPTION PLANS</div>
+        <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+          <span style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', fontSize: '0.72rem', fontWeight: 800, padding: '3px 10px', borderRadius: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            EXTERNAL PAYMENT GATEWAY INTEGRATION
+          </span>
+        </div>
+        <div className="section-title" style={{ marginBottom: '0.5rem', textAlign: 'center' }}>📦 SUPPLIER SUBSCRIPTION PLANS</div>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: 650, margin: '0 auto 1.75rem auto' }}>
+          Direct PCI-DSS compliant checkout via our authorized South African payment gateway. Instant activation, zero retained financial credentials.
+        </p>
         <div className="packages-grid">
           {[
             { icon: '🌱', name: 'Starter / Basic', price: 'R99', period: '/month', badge: null, features: ['Up to 10 product listings','Basic profile & contact','Quote requests via email', 'Gemini AI product viability check'], no: ['Premium badge'], btn: 'Get Started', cls: '' },

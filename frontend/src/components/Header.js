@@ -56,7 +56,7 @@ export default function Header({ activeTab, setActiveTab, onLogin, onRegister })
         ) : (
           <>
             <button className="btn-icon" onClick={onLogin}><i className="fas fa-user"></i> Login</button>
-            <button className="btn-yellow btn-sm" onClick={onRegister}>
+            <button className="btn-yellow btn-sm" onClick={() => onRegister('supplier')}>
               Join as Supplier
             </button>
           </>

@@ -15,14 +15,17 @@ import Modal from '../components/Modal';
 import { useToast } from '../components/Toast';
 import GeminiProductViabilityModal from '../components/GeminiProductViabilityModal';
 import GeminiProductOptimizerModal from '../components/GeminiProductOptimizerModal';
+import SupplierVerificationHub from '../components/SupplierVerificationHub';
+import SupplierOnboardingModal from '../components/SupplierOnboardingModal';
 
 const CATS = ['Clothing', 'PPE', 'Furniture', 'Packaging', 'Chemicals', 'Electronics', 'Food & Beverage', 'General'];
 const MAX_PRODUCTS = 25;
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
-  const supplierId = user?.supplier?.id;
+  const supplier = user?.supplier;
+  const supplierId = supplier?.id;
   const isSupplier = user?.role === 'supplier' || user?.role === 'admin';
   const isBuyer = user?.role === 'buyer';
 
@@ -59,6 +62,15 @@ export default function Dashboard() {
   // Gemini Modals state
   const [analyzingProduct, setAnalyzingProduct] = useState(null);
   const [showOptimizer, setShowOptimizer] = useState(false);
+
+  // Supplier Setup: Check if supplier has completed verification and subscription
+  const isVerified = supplier?.verificationStatus === 'VERIFIED' || supplier?.hasApprovedGateway;
+  const needsSetup = isSupplier && supplier && (
+    !isVerified ||
+    !supplier.subscriptionPlan ||
+    supplier.subscriptionStatus !== 'active'
+  );
+  const [showOnboardingModal, setShowOnboardingModal] = useState(Boolean(needsSetup));
 
   const products = data?.products || [];
   const supplierQuotes = suppQuotesData?.supplierQuotes || [];
@@ -147,8 +159,6 @@ export default function Dashboard() {
     return <div className="page-container"><div className="empty-state"><i className="fas fa-lock"></i><p>Please log in to access your Trade Hub and Quote Tracker.</p></div></div>;
   }
 
-  const supplier = user.supplier;
-
   return (
     <div className="page-container" style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -161,6 +171,27 @@ export default function Dashboard() {
               ? 'Manage your bulk catalog, fulfill automated turboSMTP RFQ quote requests, and optimize your market competitiveness.'
               : 'Track your submitted quote requests, supplier response statuses, and direct email contacts.'}
           </p>
+          {isSupplier && supplier && (
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem', alignItems: 'center' }}>
+              {supplier.paymentGateway ? (
+                <span style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid #22c55e', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <i className="fas fa-check-circle"></i> {supplier.paymentGateway.gatewayName}: {supplier.paymentGateway.merchantId}
+                </span>
+              ) : (
+                <button
+                  onClick={() => setActiveTab('verification')}
+                  style={{ background: 'rgba(234,179,8,0.1)', color: 'var(--yellow)', border: '1px solid var(--yellow)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                >
+                  <i className="fas fa-credit-card"></i> Link Payment Gateway (PayFast, Yoco, etc.) →
+                </button>
+              )}
+              {supplier.subscriptionPlan && (
+                <span style={{ background: 'var(--bg3)', color: '#fff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: 4 }}>
+                  Plan: {supplier.subscriptionPlan} ({supplier.subscriptionStatus})
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {isSupplier && (
@@ -172,9 +203,46 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Supplier Profile Setup Banner if unverified or unsubscribed */}
+      {isSupplier && needsSetup && (
+        <div style={{
+          background: 'linear-gradient(90deg, rgba(234,179,8,0.15) 0%, rgba(37,99,235,0.15) 100%)',
+          border: '1.5px solid var(--yellow)',
+          borderRadius: 8,
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, color: 'var(--yellow)', fontSize: '0.95rem' }}>
+              <i className="fas fa-exclamation-triangle"></i>
+              Action Required: Complete Supplier Verification & Subscription
+            </div>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.82rem', color: '#e5e5e5' }}>
+              {!isVerified && (!supplier.subscriptionPlan || supplier.subscriptionStatus !== 'active')
+                ? 'Your account was created! Verify your business profile via your preferred payment gateway or CIPC registry, and activate your subscription to publish live products.'
+                : !isVerified
+                  ? 'Your account needs business profile verification via payment gateway (PayFast/Yoco/etc.) or accredited CIPC registry.'
+                  : 'Your subscription is pending payment settlement via our South African payment gateway.'}
+            </p>
+          </div>
+          <button
+            className="btn-yellow btn-sm"
+            onClick={() => setShowOnboardingModal(true)}
+            style={{ fontWeight: 800, whiteSpace: 'nowrap' }}
+          >
+            <i className="fas fa-check-double" style={{ marginRight: 6 }}></i> Complete Setup Now
+          </button>
+        </div>
+      )}
+
       {/* Tabs Navigation for Supplier vs Buyer */}
       {isSupplier && (
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
           <button
             className={`btn-sm ${activeTab === 'catalog' ? 'btn-yellow' : 'btn-outline'}`}
             onClick={() => setActiveTab('catalog')}
@@ -186,6 +254,14 @@ export default function Dashboard() {
             onClick={() => setActiveTab('rfqs')}
           >
             <i className="fas fa-envelope-open-text" style={{ marginRight: 5 }}></i> Incoming RFQs & Quotes ({supplierQuotes.length})
+          </button>
+          <button
+            className={`btn-sm ${activeTab === 'verification' ? 'btn-yellow' : 'btn-outline'}`}
+            onClick={() => setActiveTab('verification')}
+            style={activeTab === 'verification' ? {} : { borderColor: 'var(--yellow)', color: 'var(--yellow)' }}
+          >
+            <i className="fas fa-shield-alt" style={{ marginRight: 5 }}></i> Verification & Payment Gateway
+            {supplier?.verificationStatus === 'VERIFIED' ? ' ✓' : ' ⚠️'}
           </button>
         </div>
       )}
@@ -324,6 +400,17 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+      )}
+
+      {/* SUPPLIER CATALOG TAB */}
+      {isSupplier && activeTab === 'verification' && (
+        <SupplierVerificationHub
+          supplier={supplier}
+          onRefetchSupplier={async () => {
+            if (refreshUser) await refreshUser();
+            refetch();
+          }}
+        />
       )}
 
       {/* SUPPLIER CATALOG TAB */}
@@ -602,6 +689,19 @@ export default function Dashboard() {
             }));
           }}
           onClose={() => setShowOptimizer(false)}
+        />
+      )}
+
+      {/* Supplier Profile Setup & Onboarding Modal */}
+      {showOnboardingModal && isSupplier && supplier && (
+        <SupplierOnboardingModal
+          supplier={supplier}
+          onClose={() => setShowOnboardingModal(false)}
+          onComplete={async () => {
+            setShowOnboardingModal(false);
+            if (refreshUser) await refreshUser();
+            refetch();
+          }}
         />
       )}
     </div>

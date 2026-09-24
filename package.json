@@ -7,9 +7,9 @@
     "frontend"
   ],
   "scripts": {
-    "dev": "npm run build --workspace=frontend && npm start --workspace=backend",
+    "dev": "node backend/index.js",
     "build": "npm run build --workspace=frontend",
-    "start": "npm start --workspace=backend",
+    "start": "node backend/index.js",
     "lint": "echo 'No lint errors'"
   },
   "dependencies": {

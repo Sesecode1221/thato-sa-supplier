@@ -53,7 +53,77 @@ export default function Suppliers() {
                     {s.companyName}
                     {s.isPremium && <span className="premium-badge">⭐ PREMIUM</span>}
                   </div>
-                  <div className="supplier-loc"><i className="fas fa-map-marker-alt" style={{ marginRight: 4, color: 'var(--yellow)' }}></i>{s.location}</div>
+                  <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    {s.paymentGateway?.status === 'APPROVED' ? (
+                      <span
+                        title={`Verified Merchant Account with ${s.paymentGateway.gatewayName} (Merchant ID: ${s.paymentGateway.merchantId})`}
+                        style={{
+                          background: 'rgba(34,197,94,0.18)',
+                          color: '#22c55e',
+                          border: '1px solid #22c55e',
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: 3,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3
+                        }}
+                      >
+                        <i className="fas fa-check-circle"></i> {s.paymentGateway.gatewayName.split(' ')[0]} Verified Merchant
+                      </span>
+                    ) : s.verificationStatus === 'VERIFIED' ? (
+                      <span
+                        title={s.verificationBadgeDefinition || 'Verified via Accredited External Provider'}
+                        style={{
+                          background: 'rgba(34,197,94,0.18)',
+                          color: '#22c55e',
+                          border: '1px solid #22c55e',
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: 3,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3
+                        }}
+                      >
+                        <i className="fas fa-check-circle"></i> VERIFIED: {s.verificationProvider ? s.verificationProvider.split('/')[0].trim() : 'External KYB'}
+                      </span>
+                    ) : s.verificationStatus === 'VERIFICATION_PENDING' ? (
+                      <span
+                        style={{
+                          background: 'rgba(234,179,8,0.18)',
+                          color: 'var(--yellow)',
+                          border: '1px solid var(--yellow)',
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: 3,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3
+                        }}
+                      >
+                        <i className="fas fa-hourglass-half"></i> VERIFICATION PENDING
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          background: 'rgba(255,255,255,0.06)',
+                          color: 'var(--text-dim)',
+                          fontSize: '0.65rem',
+                          padding: '1px 6px',
+                          borderRadius: 3
+                        }}
+                      >
+                        UNVERIFIED
+                      </span>
+                    )}
+                  </div>
+                  <div className="supplier-loc" style={{ marginTop: 4 }}>
+                    <i className="fas fa-map-marker-alt" style={{ marginRight: 4, color: 'var(--yellow)' }}></i>{s.location}
+                  </div>
                 </div>
               </div>
               <p className="supplier-desc">{s.description}</p>

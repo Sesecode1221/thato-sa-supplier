@@ -39,23 +39,26 @@ export default function App() {
     );
   }
 
+  const isRegisterOpen = authModal === 'register' || (typeof authModal === 'object' && authModal?.type === 'register');
+  const registerInitialRole = typeof authModal === 'object' && authModal?.role ? authModal.role : (authModal === 'register_supplier' ? 'supplier' : 'buyer');
+
   return (
     <>
       <Header
         activeTab={activeTab}
         setActiveTab={navTo}
         onLogin={() => setAuthModal('login')}
-        onRegister={() => setAuthModal('register')}
+        onRegister={(role) => setAuthModal({ type: 'register', role: role || 'supplier' })}
       />
 
       <main>
-        {activeTab === 'landing' && <Landing setActiveTab={navTo} onRegister={() => setAuthModal('register')} />}
+        {activeTab === 'landing' && <Landing setActiveTab={navTo} onRegister={(role) => setAuthModal({ type: 'register', role: role || 'supplier' })} />}
         {activeTab === 'marketplace' && <Marketplace setActiveTab={navTo} />}
         {activeTab === 'ai-insights' && <AIInsights setActiveTab={navTo} />}
         {activeTab === 'suppliers' && <Suppliers />}
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'admin' && <Admin />}
-        {activeTab === 'how-it-works' && <HowItWorks setActiveTab={navTo} onRegister={() => setAuthModal('register')} />}
+        {activeTab === 'how-it-works' && <HowItWorks setActiveTab={navTo} onRegister={(role) => setAuthModal({ type: 'register', role: role || 'supplier' })} />}
         {activeTab === 'about' && <About setActiveTab={navTo} />}
         {activeTab === 'contact' && <Contact />}
       </main>
@@ -68,10 +71,15 @@ export default function App() {
           onSwitchRegister={() => setAuthModal('register')}
         />
       )}
-      {authModal === 'register' && (
+      {isRegisterOpen && (
         <RegisterModal
+          initialRole={registerInitialRole}
           onClose={() => setAuthModal(null)}
           onSwitchLogin={() => setAuthModal('login')}
+          onSupplierRegistered={(registeredUser) => {
+            setActiveTab('dashboard');
+            toast('Welcome! Complete your verification and subscription setup to activate your listings.', 'info');
+          }}
         />
       )}
 

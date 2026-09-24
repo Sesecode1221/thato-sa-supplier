@@ -9,6 +9,171 @@ const siteMetrics = [
   { id: 'singleton', totalVisits: 4321, totalQuotes: 124, totalMessages: 57 }
 ];
 
+// Verification Providers: Deprecated in favor of Supplier-Choice Payment Gateways (PayFast, Yoco, Peach, Ozow, SnapScan, PayGate)
+const externalVerificationProviders = [];
+
+// Supported South African Payment Gateways for Supplier Business Profile & Payout Verification
+const supportedPaymentGateways = [
+  {
+    id: 'payfast',
+    name: 'PayFast by Network One',
+    tagline: "South Africa's #1 B2B & eCommerce Payment Gateway",
+    setupUrl: 'https://www.payfast.co.za/merchant/register',
+    portalUrl: 'https://www.payfast.co.za/user/login',
+    logo: 'fa-credit-card',
+    color: '#e11d48',
+    supportedPaymentMethods: ['Credit & Debit Cards (Visa / Mastercard)', 'Instant EFT', 'Capitec Pay', 'Mobicred', 'Masterpass'],
+    settlementSpeed: 'Daily auto-payout (T+1) to SA Bank Accounts',
+    requirements: ['CIPC Company Registration Number or Sole Prop ID', 'FICA Proof of Business Operating Address', 'South African Business Bank Account Confirmation Letter'],
+    isPopular: true,
+    testMerchantExample: 'PF-1049281',
+    description: 'Direct merchant profile onboarding with automated FICA and instant payout setup to any South African bank account.'
+  },
+  {
+    id: 'yoco',
+    name: 'Yoco South Africa',
+    tagline: 'Modern Digital Payments & Fast FICA Approval for SA SMEs',
+    setupUrl: 'https://www.yoco.com/za/online-payments/',
+    portalUrl: 'https://portal.yoco.co.za/',
+    logo: 'fa-mobile-screen-button',
+    color: '#0284c7',
+    supportedPaymentMethods: ['Visa & Mastercard Online', 'Yoco Gateway Links', 'Apple Pay', 'Instant EFT'],
+    settlementSpeed: '1 to 2 business days direct settlement',
+    requirements: ['CIPC Registered Details', 'Active SA Bank Account for Payouts', 'Director South African ID or Passport'],
+    isPopular: true,
+    testMerchantExample: 'YOCO-BIZ-884920',
+    description: 'Fast digital onboarding built specifically for South African growing enterprises with simple merchant dashboard and payout tracking.'
+  },
+  {
+    id: 'peach',
+    name: 'Peach Payments',
+    tagline: 'Enterprise-Grade Payment Orchestration & B2B Settlements',
+    setupUrl: 'https://www.peachpayments.com/join',
+    portalUrl: 'https://dashboard.peachpayments.com/',
+    logo: 'fa-shield-halved',
+    color: '#f97316',
+    supportedPaymentMethods: ['Card (3D Secure 2.0)', 'Peach Pay Instant EFT', 'Debit Order (AEDO/NAEDO)', 'Scan to Pay'],
+    settlementSpeed: 'Daily or weekly automated settlement schedule',
+    requirements: ['Registered Enterprise Profile', 'SARS Tax Clearance / PIN', 'Proof of Banking Account (Within 3 Months)'],
+    isPopular: false,
+    testMerchantExample: 'PP-M-449102',
+    description: 'High-volume payment gateway ideal for medium-to-large suppliers handling large purchase orders and customized payment workflows.'
+  },
+  {
+    id: 'ozow',
+    name: 'Ozow Instant EFT & Pay',
+    tagline: 'Zero-Chargeback Instant Bank-to-Bank Payments',
+    setupUrl: 'https://ozow.com/get-started',
+    portalUrl: 'https://merchants.ozow.com/',
+    logo: 'fa-bolt',
+    color: '#10b981',
+    supportedPaymentMethods: ['Instant EFT across 9 major SA Banks (Capitec, FNB, Standard Bank, Absa, Nedbank, Investec, etc.)', 'Ozow PIN', 'QR Pay'],
+    settlementSpeed: 'Instant or same-day batch settlement',
+    requirements: ['CIPC Registration Certificate', 'Proof of Active Bank Account', 'FICA Authorised Representative Details'],
+    isPopular: true,
+    testMerchantExample: 'OZOW-MERCH-77319',
+    description: 'Eliminates card transaction fees with direct automated EFT settlements and bank-grade encryption.'
+  },
+  {
+    id: 'snapscan',
+    name: 'SnapScan Merchant Solutions',
+    tagline: 'Instant QR & Web Billing via Standard Bank Infrastructure',
+    setupUrl: 'https://snapscan.co.za/merchant',
+    portalUrl: 'https://pos.snapscan.co.za/',
+    logo: 'fa-qrcode',
+    color: '#3b82f6',
+    supportedPaymentMethods: ['SnapScan In-App & QR', 'Mastercard & Visa Linked Wallets', 'EFT Links'],
+    settlementSpeed: 'Next business day direct bank transfer',
+    requirements: ['Valid South African Bank Account', 'Company or Sole Proprietor Registration Documents', 'Proof of Residential/Business Address'],
+    isPopular: false,
+    testMerchantExample: 'SNAP-M-90218',
+    description: 'Standard Bank backed mobile payment solutions with instant payment notifications and seamless invoice settlements.'
+  },
+  {
+    id: 'paygate',
+    name: 'DPO PayGate',
+    tagline: 'Global & SADC Cross-Border Multi-Currency Payment Gateway',
+    setupUrl: 'https://paygate.co.za/open-an-account',
+    portalUrl: 'https://backoffice.paygate.co.za/',
+    logo: 'fa-globe',
+    color: '#8b5cf6',
+    supportedPaymentMethods: ['Multi-Currency Cards (ZAR, USD, EUR, GBP)', 'DPO Pay', 'PayPal Cross-Border', 'SiD Secure EFT'],
+    settlementSpeed: 'T+2 settlement with multi-currency reserve support',
+    requirements: ['Commercial Business Entity Registration', 'Audited or Certified Financial Banking Confirmation', 'Director FICA Records'],
+    isPopular: false,
+    testMerchantExample: 'DPO-PG-55102',
+    description: 'Designed for suppliers trading across South Africa and the wider SADC / African region with multi-currency checkout capability.'
+  }
+];
+
+// Verification Records (stores cryptographic status reference from approved payment gateway - zero raw documents)
+const verificationRecords = [
+  {
+    id: 'vrec_1',
+    supplierId: 'sup1',
+    providerId: 'payfast',
+    providerName: 'PayFast by Network One',
+    status: 'VERIFIED',
+    referenceNumber: 'PF-APP-99482-ZA',
+    initiatedAt: '2026-09-18T09:40:00Z',
+    completedAt: '2026-09-18T10:00:00Z',
+    expiresAt: '2027-09-18T10:00:00Z',
+    scope: 'Merchant Profile Approval, Active FNB Settlement Account Verification & FICA Compliance',
+    paymentAmountZAR: 'R 0.00 (Merchant Setup)',
+    paymentGateway: 'PayFast Merchant Portal',
+    paymentStatus: 'COMPLETED_TO_PROVIDER',
+    auditLogSummary: 'Active PayFast merchant account PF-1049281 confirmed with verified daily bank payout settlement.'
+  },
+  {
+    id: 'vrec_3',
+    supplierId: 'sup3',
+    providerId: 'peach',
+    providerName: 'Peach Payments',
+    status: 'VERIFIED',
+    referenceNumber: 'PEACH-APP-55192-ZA',
+    initiatedAt: '2026-08-10T12:00:00Z',
+    completedAt: '2026-08-10T14:30:00Z',
+    expiresAt: '2027-08-10T14:30:00Z',
+    scope: 'Commercial Settlement Bank Verification & Enterprise Business Profile Clearance',
+    paymentAmountZAR: 'R 0.00 (Merchant Setup)',
+    paymentGateway: 'Peach Payments Console',
+    paymentStatus: 'COMPLETED_TO_PROVIDER',
+    auditLogSummary: 'Peach Payments merchant account PEACH-MID-44012 approved with verified commercial banking.'
+  },
+  {
+    id: 'vrec_4',
+    supplierId: 'sup4',
+    providerId: 'ozow',
+    providerName: 'Ozow Instant EFT',
+    status: 'VERIFICATION_PENDING',
+    referenceNumber: 'OZOW-PEND-88124',
+    initiatedAt: '2026-09-22T08:15:00Z',
+    completedAt: null,
+    expiresAt: null,
+    scope: 'Merchant Profile & Direct Settlement Account Registration',
+    paymentAmountZAR: 'R 0.00 (Merchant Setup)',
+    paymentGateway: 'Ozow Merchant Dashboard',
+    paymentStatus: 'AWAITING_PROVIDER_PAYMENT',
+    auditLogSummary: 'Supplier registered profile on Ozow merchant platform. Awaiting merchant token confirmation.'
+  },
+  {
+    id: 'vrec_5',
+    supplierId: 'sup5',
+    providerId: 'yoco',
+    providerName: 'Yoco South Africa',
+    status: 'VERIFIED',
+    referenceNumber: 'YOCO-APP-77301',
+    initiatedAt: '2026-07-01T10:15:00Z',
+    completedAt: '2026-07-01T11:00:00Z',
+    expiresAt: '2027-07-01T11:00:00Z',
+    scope: 'Enterprise Bank Payout Status & FICA Digital Signoff',
+    paymentAmountZAR: 'R 0.00 (Merchant Setup)',
+    paymentGateway: 'Yoco Business Portal',
+    paymentStatus: 'COMPLETED_TO_PROVIDER',
+    auditLogSummary: 'Yoco merchant profile YOCO-BIZ-884920 approved. Active payout verification recorded.'
+  }
+];
+
 function genId(prefix = 'c') {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
@@ -102,6 +267,33 @@ function seedInitialData() {
     logo: 'https://picsum.photos/id/82/100/100',
     isPremium: true,
     status: 'active',
+    verificationStatus: 'VERIFIED',
+    verificationProvider: 'PayFast by Network One',
+    verificationReference: 'PF-APP-99482-ZA',
+    verificationDate: '2026-09-18T10:00:00Z',
+    expiryDate: '2027-09-18T10:00:00Z',
+    verificationScope: 'Merchant Profile Approval, SA Bank Account Verification & FICA Settlement Clearance',
+    verificationBadgeDefinition: 'Verified Supplier: Completed payment gateway business profile approval with PayFast. Active settlement bank account confirmed.',
+    paymentGateway: {
+      gatewayId: 'payfast',
+      gatewayName: 'PayFast by Network One',
+      merchantId: 'PF-1049281',
+      businessName: 'Urban Apparel SA (Pty) Ltd',
+      status: 'APPROVED',
+      approvedAt: '2026-09-18T10:00:00Z',
+      proofReference: 'PF-APP-99482-ZA',
+      payoutBankName: 'First National Bank (FNB)',
+      payoutAccountLast4: '4819',
+      settlementCurrency: 'ZAR',
+      portalUrl: 'https://www.payfast.co.za/user/login',
+      verifiedBadge: '✓ PayFast Verified Merchant',
+      documentNote: 'CIPC Enterprise & FICA Bank Settlement Confirmed by PayFast Compliance'
+    },
+    hasApprovedGateway: true,
+    preferredGatewayId: 'payfast',
+    subscriptionPlan: 'Pro / Premium',
+    subscriptionStatus: 'active',
+    subscriptionRenewsAt: '2027-09-18T10:00:00Z',
     createdAt: new Date(Date.now() - 500000)
   };
 
@@ -116,6 +308,19 @@ function seedInitialData() {
     logo: 'https://picsum.photos/id/12/100/100',
     isPremium: false,
     status: 'active',
+    verificationStatus: 'UNVERIFIED',
+    verificationProvider: null,
+    verificationReference: null,
+    verificationDate: null,
+    expiryDate: null,
+    verificationScope: null,
+    verificationBadgeDefinition: null,
+    paymentGateway: null,
+    hasApprovedGateway: false,
+    preferredGatewayId: null,
+    subscriptionPlan: 'Starter / Basic',
+    subscriptionStatus: 'active',
+    subscriptionRenewsAt: '2027-01-15T10:00:00Z',
     createdAt: new Date(Date.now() - 400000)
   };
 
@@ -130,6 +335,33 @@ function seedInitialData() {
     logo: 'https://picsum.photos/id/20/100/100',
     isPremium: true,
     status: 'active',
+    verificationStatus: 'VERIFIED',
+    verificationProvider: 'Peach Payments',
+    verificationReference: 'PEACH-APP-55192-ZA',
+    verificationDate: '2026-08-10T14:30:00Z',
+    expiryDate: '2027-08-10T14:30:00Z',
+    verificationScope: 'Commercial Settlement Bank Verification & Enterprise Business Profile Clearance',
+    verificationBadgeDefinition: 'Verified Supplier: Completed payment gateway business profile approval with Peach Payments. Active settlement bank account confirmed.',
+    paymentGateway: {
+      gatewayId: 'peach',
+      gatewayName: 'Peach Payments',
+      merchantId: 'PP-M-449102',
+      businessName: 'Safety First Supplies (Pty) Ltd',
+      status: 'APPROVED',
+      approvedAt: '2026-08-10T14:30:00Z',
+      proofReference: 'PEACH-FICA-88192',
+      payoutBankName: 'Standard Bank',
+      payoutAccountLast4: '7721',
+      settlementCurrency: 'ZAR',
+      portalUrl: 'https://dashboard.peachpayments.com/',
+      verifiedBadge: '✓ Peach Payments Verified Merchant',
+      documentNote: 'Commercial Bank Account Ownership & FICA Settlement Verified'
+    },
+    hasApprovedGateway: true,
+    preferredGatewayId: 'peach',
+    subscriptionPlan: 'Enterprise',
+    subscriptionStatus: 'active',
+    subscriptionRenewsAt: '2027-08-10T14:30:00Z',
     createdAt: new Date(Date.now() - 300000)
   };
 
@@ -144,6 +376,33 @@ function seedInitialData() {
     logo: 'https://picsum.photos/id/42/100/100',
     isPremium: false,
     status: 'pending',
+    verificationStatus: 'VERIFICATION_PENDING',
+    verificationProvider: 'Ozow Instant EFT & Pay',
+    verificationReference: 'OZOW-PEND-88124',
+    verificationDate: '2026-09-22T08:15:00Z',
+    expiryDate: null,
+    verificationScope: 'Merchant Profile & Direct Settlement Account Registration with Ozow',
+    verificationBadgeDefinition: 'Verification Pending: Merchant profile submitted to Ozow. Bank settlement confirmation in progress.',
+    paymentGateway: {
+      gatewayId: 'ozow',
+      gatewayName: 'Ozow Instant EFT & Pay',
+      merchantId: 'OZOW-M-9921',
+      businessName: 'Bulk Storage Africa (Pty) Ltd',
+      status: 'PENDING_REVIEW',
+      approvedAt: null,
+      proofReference: 'OZOW-PEND-88124',
+      payoutBankName: 'Nedbank',
+      payoutAccountLast4: '3301',
+      settlementCurrency: 'ZAR',
+      portalUrl: 'https://hub.ozow.com/',
+      verifiedBadge: '⏳ Ozow Merchant Review Pending',
+      documentNote: 'Awaiting Ozow bank settlement handshake'
+    },
+    hasApprovedGateway: false,
+    preferredGatewayId: 'ozow',
+    subscriptionPlan: 'Starter / Basic',
+    subscriptionStatus: 'pending_payment',
+    subscriptionRenewsAt: null,
     createdAt: new Date(Date.now() - 200000)
   };
 
@@ -158,6 +417,33 @@ function seedInitialData() {
     logo: 'https://picsum.photos/id/55/100/100',
     isPremium: true,
     status: 'active',
+    verificationStatus: 'VERIFIED',
+    verificationProvider: 'Yoco South Africa',
+    verificationReference: 'YOCO-APP-77301',
+    verificationDate: '2026-07-01T11:00:00Z',
+    expiryDate: '2027-07-01T11:00:00Z',
+    verificationScope: 'Enterprise Bank Payout Status & FICA Digital Signoff via Yoco',
+    verificationBadgeDefinition: 'Verified Supplier: Completed payment gateway business profile approval with Yoco. Active settlement bank account confirmed.',
+    paymentGateway: {
+      gatewayId: 'yoco',
+      gatewayName: 'Yoco South Africa',
+      merchantId: 'YOCO-BIZ-884920',
+      businessName: 'HomeStyle Furniture (Pty) Ltd',
+      status: 'APPROVED',
+      approvedAt: '2026-07-01T11:00:00Z',
+      proofReference: 'YOCO-APP-77301',
+      payoutBankName: 'Absa Bank',
+      payoutAccountLast4: '9912',
+      settlementCurrency: 'ZAR',
+      portalUrl: 'https://portal.yoco.co.za/',
+      verifiedBadge: '✓ Yoco Verified Merchant',
+      documentNote: 'CIPC Enterprise & FICA Bank Settlement Confirmed by Yoco'
+    },
+    hasApprovedGateway: true,
+    preferredGatewayId: 'yoco',
+    subscriptionPlan: 'Pro / Premium',
+    subscriptionStatus: 'active',
+    subscriptionRenewsAt: '2027-07-01T11:00:00Z',
     createdAt: new Date(Date.now() - 100000)
   };
 
@@ -291,6 +577,16 @@ const prisma = {
           logo: data.supplier.create.logo || 'https://picsum.photos/id/1/100/100',
           isPremium: false,
           status: data.supplier.create.status || 'active',
+          verificationStatus: 'UNVERIFIED',
+          verificationProvider: null,
+          verificationReference: null,
+          verificationDate: null,
+          expiryDate: null,
+          verificationScope: null,
+          verificationBadgeDefinition: null,
+          subscriptionPlan: null,
+          subscriptionStatus: 'pending_payment',
+          subscriptionRenewsAt: null,
           createdAt: new Date()
         };
         suppliers.push(newSup);
@@ -351,6 +647,19 @@ const prisma = {
         logo: data.logo || 'https://picsum.photos/id/1/100/100',
         isPremium: data.isPremium || false,
         status: data.status || 'pending',
+        verificationStatus: 'UNVERIFIED',
+        verificationProvider: null,
+        verificationReference: null,
+        verificationDate: null,
+        expiryDate: null,
+        verificationScope: null,
+        verificationBadgeDefinition: null,
+        subscriptionPlan: null,
+        subscriptionStatus: 'pending_payment',
+        subscriptionRenewsAt: null,
+        paymentGateway: data.paymentGateway || null,
+        hasApprovedGateway: Boolean(data.paymentGateway && data.paymentGateway.status === 'APPROVED'),
+        preferredGatewayId: data.preferredGatewayId || null,
         createdAt: new Date()
       };
       suppliers.push(newSup);
@@ -501,7 +810,54 @@ const prisma = {
       }
       return metric;
     }
+  },
+
+  verificationProvider: {
+    findMany: async () => [...externalVerificationProviders],
+    findUnique: async ({ where }) => externalVerificationProviders.find(p => p.id === where.id) || null
+  },
+
+  paymentGateway: {
+    findMany: async () => supportedPaymentGateways.map(g => ({ ...g })),
+    findUnique: async ({ where }) => supportedPaymentGateways.find(g => g.id === where.id) || null
+  },
+
+  verificationRecord: {
+    findMany: async ({ where = {} } = {}) => {
+      let list = [...verificationRecords];
+      if (where.supplierId) list = list.filter(r => r.supplierId === where.supplierId);
+      list.sort((a, b) => new Date(b.initiatedAt) - new Date(a.initiatedAt));
+      return list;
+    },
+    create: async ({ data }) => {
+      const newRec = {
+        id: genId('vrec'),
+        supplierId: data.supplierId,
+        providerId: data.providerId,
+        providerName: data.providerName,
+        status: data.status || 'VERIFICATION_PENDING',
+        referenceNumber: data.referenceNumber,
+        initiatedAt: data.initiatedAt || new Date().toISOString(),
+        completedAt: data.completedAt || null,
+        expiresAt: data.expiresAt || null,
+        scope: data.scope,
+        paymentAmountZAR: data.paymentAmountZAR || 'R 349.00',
+        paymentGateway: data.paymentGateway || 'Direct Provider Gateway',
+        paymentStatus: data.paymentStatus || 'COMPLETED_TO_PROVIDER',
+        auditLogSummary: data.auditLogSummary || 'Direct external verification initiated.'
+      };
+      verificationRecords.unshift(newRec);
+      return newRec;
+    },
+    update: async ({ where, data }) => {
+      const idx = verificationRecords.findIndex(r => r.id === where.id || r.referenceNumber === where.referenceNumber);
+      if (idx !== -1) {
+        verificationRecords[idx] = { ...verificationRecords[idx], ...data };
+        return verificationRecords[idx];
+      }
+      return null;
+    }
   }
 };
 
-module.exports = { prisma };
+module.exports = { prisma, externalVerificationProviders, supportedPaymentGateways, verificationRecords };

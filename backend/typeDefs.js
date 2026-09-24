@@ -22,6 +22,117 @@ const typeDefs = gql`
     status: String!
     products: [Product!]!
     productCount: Int!
+    
+    # External Provider & Supplier-Owned Verification Model
+    verificationStatus: String # UNVERIFIED, VERIFICATION_PENDING, VERIFIED, VERIFICATION_EXPIRED, VERIFICATION_FAILED, VERIFICATION_SUSPENDED, VERIFICATION_REVOKED
+    verificationProvider: String
+    verificationReference: String
+    verificationDate: String
+    expiryDate: String
+    verificationScope: String
+    verificationBadgeDefinition: String
+    
+    # Subscription & External Payment Gateway Details
+    subscriptionPlan: String
+    subscriptionStatus: String # active, pending_payment, past_due, trial, cancelled
+    subscriptionRenewsAt: String
+
+    # Payment Gateway Profile & Verification
+    paymentGateway: SupplierPaymentGateway
+    hasApprovedGateway: Boolean!
+    preferredGatewayId: String
+  }
+
+  type SupplierPaymentGateway {
+    gatewayId: String!
+    gatewayName: String!
+    merchantId: String!
+    businessName: String!
+    status: String! # APPROVED, PENDING_REVIEW, REJECTED
+    approvedAt: String
+    proofReference: String
+    payoutBankName: String
+    payoutAccountLast4: String
+    settlementCurrency: String
+    portalUrl: String!
+    verifiedBadge: String!
+    documentNote: String
+  }
+
+  type SupportedPaymentGateway {
+    id: String!
+    name: String!
+    tagline: String!
+    setupUrl: String!
+    portalUrl: String!
+    logo: String!
+    color: String!
+    supportedPaymentMethods: [String!]!
+    settlementSpeed: String!
+    requirements: [String!]!
+    isPopular: Boolean!
+    testMerchantExample: String!
+    description: String!
+  }
+
+  type GatewayRedirectPayload {
+    gatewayId: String!
+    gatewayName: String!
+    redirectUrl: String!
+    setupReference: String!
+    callbackUrl: String!
+    instructions: [String!]!
+  }
+
+  type ExternalVerificationProvider {
+    id: String!
+    name: String!
+    tagline: String!
+    category: String!
+    supportedChecks: [String!]!
+    standardFeeZAR: String!
+    turnaround: String!
+    complianceCertifications: [String!]!
+    statusEndpoint: String!
+    isRecommended: Boolean!
+    redirectUrl: String!
+  }
+
+  type ExternalVerificationRecord {
+    id: String!
+    supplierId: String!
+    providerId: String!
+    providerName: String!
+    status: String!
+    referenceNumber: String!
+    initiatedAt: String!
+    completedAt: String
+    expiresAt: String
+    scope: String!
+    paymentAmountZAR: String!
+    paymentGateway: String!
+    paymentStatus: String!
+    auditLogSummary: String!
+  }
+
+  type VerificationSessionPayload {
+    sessionUrl: String!
+    referenceNumber: String!
+    providerName: String!
+    providerId: String!
+    gatewayPlaceholder: String!
+    instructions: String!
+    termsSummary: String!
+  }
+
+  type GatewaySubscriptionPayload {
+    gatewayName: String!
+    planName: String!
+    amountZAR: String!
+    checkoutUrl: String!
+    paymentReference: String!
+    isPlaceholder: Boolean!
+    notice: String!
   }
 
   type Product {
@@ -125,6 +236,11 @@ const typeDefs = gql`
     getSupplierCompetitivenessAdvice(supplierId: String, categoryFocus: String): AISupplierCompetitiveness!
     getMarketViabilityRecommendations(industry: String): AIMarketInsights!
     optimizeProductListing(name: String!, category: String, targetAudience: String, currentPrice: String, currentMoq: Int): AIProductOptimization!
+    # External Provider Verification & Gateway Queries
+    externalVerificationProviders: [ExternalVerificationProvider!]!
+    supplierVerificationRecords(supplierId: String): [ExternalVerificationRecord!]!
+    verificationModelProposal: String!
+    supportedPaymentGateways: [SupportedPaymentGateway!]!
   }
 
   type Mutation {
@@ -143,6 +259,32 @@ const typeDefs = gql`
     updateSupplierPermissions(id: String!, isPremium: Boolean, maxProducts: Int): Supplier!
     deleteSupplier(id: String!): Boolean!
     updateAdminSettings(autoApprove: Boolean): Boolean!
+
+    # External Provider Verification & Payment Gateway Mutations
+    initiateExternalVerification(providerId: String!, acknowledgedTerms: Boolean!): VerificationSessionPayload!
+    simulateProviderWebhookOutcome(
+      supplierId: String!
+      providerId: String!
+      outcomeStatus: String! # VERIFIED, VERIFICATION_FAILED, VERIFICATION_EXPIRED, VERIFICATION_SUSPENDED, VERIFICATION_REVOKED
+      referenceNumber: String
+      scope: String
+    ): Supplier!
+    createSupplierGatewayCheckout(planName: String!, billingCycle: String): GatewaySubscriptionPayload!
+    confirmSupplierSubscription(planName: String!, paymentReference: String!): Supplier!
+
+    # Supplier Choice Payment Gateway Verification & Profile Setup
+    initiateGatewaySetupRedirect(gatewayId: String!, returnUrl: String): GatewayRedirectPayload!
+    submitPaymentGatewayProof(
+      gatewayId: String!
+      merchantId: String!
+      businessName: String!
+      proofReference: String!
+      payoutBankName: String
+      payoutAccountLast4: String
+      proofDocumentNote: String
+      simulateAutoApproval: Boolean
+    ): Supplier!
+    disconnectPaymentGateway(supplierId: String): Supplier!
   }
 `;
 

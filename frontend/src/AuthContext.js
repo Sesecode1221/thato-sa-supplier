@@ -26,6 +26,19 @@ export function AuthProvider({ children }) {
     setUser(userData);
   };
 
+  const refreshUser = async () => {
+    try {
+      const { data } = await client.query({ query: ME, fetchPolicy: 'network-only' });
+      if (data?.me) {
+        setUser(data.me);
+        return data.me;
+      }
+    } catch (err) {
+      console.error('[AuthContext] refreshUser error:', err);
+    }
+    return null;
+  };
+
   const logout = () => {
     localStorage.removeItem('sa_token');
     setUser(null);
@@ -33,7 +46,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
